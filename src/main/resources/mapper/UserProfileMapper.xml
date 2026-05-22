@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.lembe.user.mapper.UserProfileMapper">
+
+    <resultMap id="UserProfileResultMap" type="com.lembe.user.domain.UserProfile">
+        <id     property="profileSeq"           column="profile_seq"/>
+        <result property="userSeq"              column="user_seq"/>
+        <result property="gender"               column="gender"/>
+        <result property="birthYear"            column="birth_year"/>
+        <result property="heightCm"             column="height_cm"/>
+        <result property="notificationEnabled"  column="notification_enabled"/>
+        <result property="createdAt"            column="created_at"/>
+        <result property="updatedAt"            column="updated_at"/>
+    </resultMap>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="profileSeq">
+        INSERT INTO tb_user_profile (user_seq, gender, birth_year, height_cm, notification_enabled)
+        VALUES (#{userSeq}, #{gender}, #{birthYear}, #{heightCm}, #{notificationEnabled})
+    </insert>
+
+    <select id="findByUserSeq" resultMap="UserProfileResultMap">
+        SELECT *
+        FROM tb_user_profile
+        WHERE user_seq = #{userSeq}
+    </select>
+
+</mapper>

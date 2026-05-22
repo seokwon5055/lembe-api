@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.lembe.user.mapper.UserMapper">
+
+    <resultMap id="UserResultMap" type="com.lembe.user.domain.User">
+        <id     property="userSeq"       column="user_seq"/>
+        <result property="email"         column="email"/>
+        <result property="password"      column="password"/>
+        <result property="nickname"      column="nickname"/>
+        <result property="profileImgUrl" column="profile_img_url"/>
+        <result property="streakCount"   column="streak_count"/>
+        <result property="lastStreakDt"  column="last_streak_dt"/>
+        <result property="isDeleted"     column="is_deleted"/>
+        <result property="createdAt"     column="created_at"/>
+        <result property="updatedAt"     column="updated_at"/>
+    </resultMap>
+
+    <select id="findById" resultMap="UserResultMap">
+        SELECT *
+        FROM tb_user
+        WHERE user_seq = #{userSeq}
+          AND is_deleted = 0
+    </select>
+
+    <select id="findByEmail" resultMap="UserResultMap">
+        SELECT *
+        FROM tb_user
+        WHERE email = #{email}
+          AND is_deleted = 0
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="userSeq">
+        INSERT INTO tb_user (email, password, nickname, profile_img_url)
+        VALUES (#{email}, #{password}, #{nickname}, #{profileImgUrl})
+    </insert>
+
+    <update id="updateStreak">
+        UPDATE tb_user
+        SET streak_count  = #{streakCount},
+            last_streak_dt = #{lastStreakDt}
+        WHERE user_seq = #{userSeq}
+    </update>
+
+</mapper>

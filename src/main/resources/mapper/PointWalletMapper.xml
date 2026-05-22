@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.lembe.user.mapper.PointWalletMapper">
+
+    <resultMap id="PointWalletResultMap" type="com.lembe.user.domain.PointWallet">
+        <id     property="walletSeq" column="wallet_seq"/>
+        <result property="userSeq"   column="user_seq"/>
+        <result property="balance"   column="balance"/>
+        <result property="updatedAt" column="updated_at"/>
+    </resultMap>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="walletSeq">
+        INSERT INTO tb_point_wallet (user_seq, balance)
+        VALUES (#{userSeq}, #{balance})
+    </insert>
+
+    <select id="findByUserSeq" resultMap="PointWalletResultMap">
+        SELECT *
+        FROM tb_point_wallet
+        WHERE user_seq = #{userSeq}
+    </select>
+
+    <!-- 잔액 차감 시 음수 방지: delta < 0이면 balance >= |delta| 조건 확인 -->
+    <update id="updateBalance">
+        UPDATE tb_point_wallet
+        SET balance = balance + #{delta}
+        WHERE user_seq = #{userSeq}
+        <if test="delta &lt; 0">
+          AND balance >= #{delta} * -1
+        </if>
+    </update>
+
+</mapper>
