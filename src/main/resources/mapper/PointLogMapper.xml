@@ -4,11 +4,33 @@
 
 <mapper namespace="com.lembe.point.mapper.PointLogMapper">
 
+    <resultMap id="PointLogResultMap" type="com.lembe.point.domain.PointLog">
+        <id     property="pointLogSeq"  column="point_log_seq"/>
+        <result property="userSeq"      column="user_seq"/>
+        <result property="delta"        column="delta"/>
+        <result property="balanceAfter" column="balance_after"/>
+        <result property="reason"       column="reason"/>
+        <result property="refId"        column="ref_id"/>
+        <result property="createdAt"    column="created_at"/>
+    </resultMap>
+
     <insert id="insert" useGeneratedKeys="true" keyProperty="pointLogSeq">
         INSERT INTO tb_point_log
             (user_seq, delta, balance_after, reason, ref_id)
         VALUES
             (#{userSeq}, #{delta}, #{balanceAfter}, #{reason}, #{refId})
     </insert>
+
+    <select id="findHistory" resultMap="PointLogResultMap">
+        SELECT *
+        FROM tb_point_log
+        WHERE user_seq = #{userSeq}
+        ORDER BY created_at DESC
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
+
+    <select id="countByUserSeq" resultType="int">
+        SELECT COUNT(*) FROM tb_point_log WHERE user_seq = #{userSeq}
+    </select>
 
 </mapper>

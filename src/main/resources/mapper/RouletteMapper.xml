@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.lembe.roulette.mapper.RouletteMapper">
+
+    <resultMap id="RouletteLogResultMap" type="com.lembe.roulette.domain.RouletteLog">
+        <id     property="rouletteLogSeq" column="roulette_log_seq"/>
+        <result property="userSeq"        column="user_seq"/>
+        <result property="spinType"       column="spin_type"/>
+        <result property="pointsWon"      column="points_won"/>
+        <result property="spunAt"         column="spun_at"/>
+    </resultMap>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="rouletteLogSeq">
+        INSERT INTO tb_roulette_log (user_seq, spin_type, points_won, spun_at)
+        VALUES (#{userSeq}, #{spinType}, #{pointsWon}, #{spunAt})
+    </insert>
+
+    <select id="findLastFreeByUserSeq" resultMap="RouletteLogResultMap">
+        SELECT *
+        FROM tb_roulette_log
+        WHERE user_seq  = #{userSeq}
+          AND spin_type = 'FREE'
+        ORDER BY spun_at DESC
+        LIMIT 1
+    </select>
+
+    <select id="countAdBonusTodayByUserSeq" resultType="int">
+        SELECT COUNT(*)
+        FROM tb_roulette_log
+        WHERE user_seq  = #{userSeq}
+          AND spin_type = 'AD_BONUS'
+          AND DATE(spun_at) = CURDATE()
+    </select>
+
+</mapper>

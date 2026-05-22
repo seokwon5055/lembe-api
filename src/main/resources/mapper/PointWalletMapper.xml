@@ -22,6 +22,13 @@
         WHERE user_seq = #{userSeq}
     </select>
 
+    <select id="findByUserSeqForUpdate" resultMap="PointWalletResultMap">
+        SELECT *
+        FROM tb_point_wallet
+        WHERE user_seq = #{userSeq}
+        FOR UPDATE
+    </select>
+
     <!-- 잔액 차감 시 음수 방지: delta < 0이면 balance >= |delta| 조건 확인 -->
     <update id="updateBalance">
         UPDATE tb_point_wallet
