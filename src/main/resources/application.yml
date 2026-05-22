@@ -34,8 +34,18 @@ jwt:
   access-token-expiry: 3600000      # 1 hour
   refresh-token-expiry: 2592000000  # 30 days
 
+storage:
+  type: local
+  local:
+    base-path: ./uploads
+    base-url: http://localhost:8080/files
+
 server:
   port: 8080
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 12MB
 
 logging:
   level:
@@ -72,8 +82,18 @@ jwt:
   access-token-expiry: 3600000
   refresh-token-expiry: 2592000000
 
+storage:
+  type: ${STORAGE_TYPE:local}
+  local:
+    base-path: ${STORAGE_LOCAL_PATH:./uploads}
+    base-url: ${STORAGE_LOCAL_URL:http://localhost:8080/files}
+
 server:
   port: 8080
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 12MB
 
 logging:
   level:
@@ -112,8 +132,18 @@ jwt:
   access-token-expiry: 3600000
   refresh-token-expiry: 2592000000
 
+storage:
+  type: ${STORAGE_TYPE:local}
+  local:
+    base-path: ${STORAGE_LOCAL_PATH:./uploads}
+    base-url: ${STORAGE_LOCAL_URL:http://localhost:8080/files}
+
 server:
   port: 8080
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 12MB
 
 logging:
   level:

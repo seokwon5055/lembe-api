@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.lembe.weight.mapper.WeightMapper">
+
+    <resultMap id="WeightResultMap" type="com.lembe.weight.domain.WeightRecord">
+        <id     property="logSeq"       column="log_seq"/>
+        <result property="userSeq"      column="user_seq"/>
+        <result property="weightKg"     column="weight_kg"/>
+        <result property="bodyFatPct"   column="body_fat_pct"/>
+        <result property="muscleMassKg" column="muscle_mass_kg"/>
+        <result property="source"       column="source"/>
+        <result property="loggedAt"     column="logged_at"/>
+        <result property="createdAt"    column="created_at"/>
+    </resultMap>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="logSeq">
+        INSERT INTO tb_weight_log
+            (user_seq, weight_kg, body_fat_pct, muscle_mass_kg, source, logged_at)
+        VALUES
+            (#{userSeq}, #{weightKg}, #{bodyFatPct}, #{muscleMassKg}, #{source}, #{loggedAt})
+    </insert>
+
+    <select id="findByUserAndDate" resultMap="WeightResultMap">
+        SELECT * FROM tb_weight_log
+        WHERE user_seq  = #{userSeq}
+          AND logged_at = #{loggedAt}
+        LIMIT 1
+    </select>
+
+    <select id="findLatestByUserSeq" resultMap="WeightResultMap">
+        SELECT * FROM tb_weight_log
+        WHERE user_seq = #{userSeq}
+        ORDER BY logged_at DESC, created_at DESC
+        LIMIT 1
+    </select>
+
+    <select id="findHistory" resultMap="WeightResultMap">
+        SELECT * FROM tb_weight_log
+        WHERE user_seq  = #{userSeq}
+          AND logged_at >= #{fromDate}
+        ORDER BY logged_at ASC
+    </select>
+
+</mapper>

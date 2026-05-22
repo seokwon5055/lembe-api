@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.lembe.photo.mapper.PhotoMapper">
+
+    <resultMap id="PhotoResultMap" type="com.lembe.photo.domain.Photo">
+        <id     property="photoSeq"         column="photo_seq"/>
+        <result property="userSeq"          column="user_seq"/>
+        <result property="milestoneSeq"     column="milestone_seq"/>
+        <result property="photoType"        column="photo_type"/>
+        <result property="storageKey"       column="storage_key"/>
+        <result property="cdnUrl"           column="cdn_url"/>
+        <result property="weightKg"         column="weight_kg"/>
+        <result property="isMain"           column="is_main"/>
+        <result property="version"          column="version"/>
+        <result property="parentPhotoSeq"   column="parent_photo_seq"/>
+        <result property="isDeleted"        column="is_deleted"/>
+        <result property="takenAt"          column="taken_at"/>
+        <result property="createdAt"        column="created_at"/>
+    </resultMap>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="photoSeq">
+        INSERT INTO tb_photo
+            (user_seq, milestone_seq, photo_type, storage_key, cdn_url,
+             weight_kg, is_main, version, parent_photo_seq, taken_at)
+        VALUES
+            (#{userSeq}, #{milestoneSeq}, #{photoType}, #{storageKey}, #{cdnUrl},
+             #{weightKg}, #{isMain}, #{version}, #{parentPhotoSeq}, #{takenAt})
+    </insert>
+
+    <select id="findById" resultMap="PhotoResultMap">
+        SELECT * FROM tb_photo
+        WHERE photo_seq = #{photoSeq} AND is_deleted = 0
+    </select>
+
+    <select id="findByUserSeq" resultMap="PhotoResultMap">
+        SELECT * FROM tb_photo
+        WHERE user_seq = #{userSeq}
+          AND is_deleted = 0
+          <if test="photoType != null">
+            AND photo_type = #{photoType}
+          </if>
+        ORDER BY created_at DESC
+    </select>
+
+    <select id="findMainByUserSeq" resultMap="PhotoResultMap">
+        SELECT * FROM tb_photo
+        WHERE user_seq = #{userSeq}
+          AND is_main  = 1
+          AND is_deleted = 0
+        ORDER BY photo_type, created_at DESC
+    </select>
+
+    <!-- 같은 타입의 기존 메인 해제 후 새 메인 지정 -->
+    <update id="updateMain">
+        UPDATE tb_photo
+        SET is_main = CASE WHEN photo_seq = #{photoSeq} THEN 1 ELSE 0 END
+        WHERE user_seq   = #{userSeq}
+          AND photo_type = #{photoType}
+          AND is_deleted = 0
+    </update>
+
+    <update id="softDelete">
+        UPDATE tb_photo
+        SET is_deleted = 1
+        WHERE photo_seq = #{photoSeq}
+          AND user_seq  = #{userSeq}
+    </update>
+
+</mapper>

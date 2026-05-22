@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.lembe.point.mapper.PointLogMapper">
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="pointLogSeq">
+        INSERT INTO tb_point_log
+            (user_seq, delta, balance_after, reason, ref_id)
+        VALUES
+            (#{userSeq}, #{delta}, #{balanceAfter}, #{reason}, #{refId})
+    </insert>
+
+</mapper>

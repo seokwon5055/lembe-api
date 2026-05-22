@@ -52,6 +52,24 @@
         </foreach>
     </insert>
 
+    <select id="findReachedLocked" resultMap="MilestoneResultMap">
+        SELECT m.*,
+               NULL AS target_body_fat_pct,
+               NULL AS target_muscle_mass_kg
+        FROM tb_milestone m
+        WHERE goal_seq    = #{goalSeq}
+          AND status      = 'LOCKED'
+          AND target_weight >= #{currentWeight}
+        ORDER BY sort_order
+    </select>
+
+    <update id="markReadyToUnlock">
+        UPDATE tb_milestone
+        SET status = 'READY_TO_UNLOCK'
+        WHERE milestone_seq = #{milestoneSeq}
+          AND status        = 'LOCKED'
+    </update>
+
     <delete id="deleteLockedByGoalSeq">
         DELETE FROM tb_milestone
         WHERE goal_seq = #{goalSeq}
