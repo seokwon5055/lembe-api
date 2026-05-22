@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.lembe.goal.mapper.MilestoneMapper">
+
+    <resultMap id="MilestoneResultMap" type="com.lembe.goal.domain.Milestone">
+        <id     property="milestoneSeq"         column="milestone_seq"/>
+        <result property="goalSeq"              column="goal_seq"/>
+        <result property="userSeq"              column="user_seq"/>
+        <result property="sequence"             column="sort_order"/>
+        <result property="label"                column="label"/>
+        <result property="targetWeight"         column="target_weight"/>
+        <result property="lossKg"               column="loss_kg"/>
+        <result property="targetBodyFatPct"     column="target_body_fat_pct"/>
+        <result property="targetMuscleMassKg"   column="target_muscle_mass_kg"/>
+        <result property="isFinal"              column="is_final"/>
+        <result property="status"               column="status"/>
+        <result property="photoSeq"             column="photo_seq"/>
+        <result property="unlockedAt"           column="unlocked_at"/>
+        <result property="createdAt"            column="created_at"/>
+    </resultMap>
+
+    <select id="findByGoalSeq" resultMap="MilestoneResultMap">
+        SELECT m.*,
+               NULL AS target_body_fat_pct,
+               NULL AS target_muscle_mass_kg
+        FROM tb_milestone m
+        WHERE goal_seq = #{goalSeq}
+        ORDER BY sort_order
+    </select>
+
+    <select id="findLastUnlockedByGoalSeq" resultMap="MilestoneResultMap">
+        SELECT m.*,
+               NULL AS target_body_fat_pct,
+               NULL AS target_muscle_mass_kg
+        FROM tb_milestone m
+        WHERE goal_seq = #{goalSeq}
+          AND status   = 'UNLOCKED'
+        ORDER BY sort_order DESC
+        LIMIT 1
+    </select>
+
+    <insert id="batchInsert" useGeneratedKeys="true" keyProperty="milestoneSeq">
+        INSERT INTO tb_milestone
+            (goal_seq, user_seq, sort_order, label, target_weight, loss_kg,
+             is_final, status)
+        VALUES
+        <foreach collection="list" item="m" separator=",">
+            (#{m.goalSeq}, #{m.userSeq}, #{m.sequence}, #{m.label},
+             #{m.targetWeight}, #{m.lossKg}, #{m.isFinal}, 'LOCKED')
+        </foreach>
+    </insert>
+
+    <delete id="deleteLockedByGoalSeq">
+        DELETE FROM tb_milestone
+        WHERE goal_seq = #{goalSeq}
+          AND status   = 'LOCKED'
+    </delete>
+
+    <update id="unlock">
+        UPDATE tb_milestone
+        SET status      = 'UNLOCKED',
+            photo_seq   = #{photoSeq},
+            unlocked_at = NOW()
+        WHERE milestone_seq = #{milestoneSeq}
+    </update>
+
+</mapper>
