@@ -26,6 +26,10 @@ spring:
       host: localhost
       port: 6379
 
+  task:
+    scheduling:
+      enabled: true
+
 mybatis:
   mapper-locations: classpath:mapper/**/*.xml
   type-aliases-package: com.lembe
@@ -51,11 +55,6 @@ fcm:
 fal:
   api-key: ${FAL_API_KEY:mock}         # TODO: fal.ai 연동 시 실제 키 발급
   enabled: false                       # true로 변경 시 실제 API 호출
-
-spring:
-  task:
-    scheduling:
-      enabled: true
 
 server:
   port: 8080
