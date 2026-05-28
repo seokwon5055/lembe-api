@@ -16,4 +16,7 @@ public interface PointWalletMapper {
 
     // 잔액 증감 (delta 양수=적립, 음수=차감). 차감 시 잔액 < 0 방지를 위해 WHERE balance >= ABS(delta) 조건
     int updateBalance(@Param("userSeq") Long userSeq, @Param("delta") int delta);
+
+    // 환불 전용 — 잔액 부족해도 마이너스 허용
+    void updateBalanceForRefund(@Param("userSeq") Long userSeq, @Param("delta") int delta);
 }

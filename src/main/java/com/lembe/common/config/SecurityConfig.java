@@ -27,7 +27,13 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/v1/auth/**", "/api/v1/health", "/files/**", "/api/v1/dev/**").permitAll()
+                        .requestMatchers(
+                                "/api/v1/auth/**",
+                                "/api/v1/health",
+                                "/files/**",
+                                "/api/v1/dev/**",
+                                "/api/v1/points/purchase/refund"  // 애플/구글 환불 웹훅 (서버간 통신)
+                        ).permitAll()
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(

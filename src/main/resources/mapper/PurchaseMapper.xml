@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.lembe.purchase.mapper.PurchaseMapper">
+
+    <resultMap id="PurchaseResultMap" type="com.lembe.purchase.domain.Purchase">
+        <id     property="purchaseSeq"   column="purchase_seq"/>
+        <result property="userSeq"       column="user_seq"/>
+        <result property="platform"      column="platform"/>
+        <result property="productId"     column="product_id"/>
+        <result property="transactionId" column="transaction_id"/>
+        <result property="receipt"       column="receipt"/>
+        <result property="pointsGranted" column="points_granted"/>
+        <result property="bonusPoints"   column="bonus_points"/>
+        <result property="amountKrw"     column="amount_krw"/>
+        <result property="status"        column="status"/>
+        <result property="verifiedAt"    column="verified_at"/>
+        <result property="refundedAt"    column="refunded_at"/>
+        <result property="refundReason"  column="refund_reason"/>
+        <result property="createdAt"     column="created_at"/>
+    </resultMap>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="purchaseSeq">
+        INSERT INTO tb_purchase
+            (user_seq, platform, product_id, transaction_id, receipt,
+             points_granted, bonus_points, amount_krw, status)
+        VALUES
+            (#{userSeq}, #{platform}, #{productId}, #{transactionId}, #{receipt},
+             #{pointsGranted}, #{bonusPoints}, #{amountKrw}, #{status})
+    </insert>
+
+    <select id="findById" resultMap="PurchaseResultMap">
+        SELECT * FROM tb_purchase WHERE purchase_seq = #{purchaseSeq}
+    </select>
+
+    <select id="findByPlatformAndTransactionId" resultMap="PurchaseResultMap">
+        SELECT * FROM tb_purchase
+        WHERE platform       = #{platform}
+          AND transaction_id = #{transactionId}
+        LIMIT 1
+    </select>
+
+    <select id="existsByPlatformAndTransactionId" resultType="boolean">
+        SELECT COUNT(*) > 0
+        FROM tb_purchase
+        WHERE platform       = #{platform}
+          AND transaction_id = #{transactionId}
+    </select>
+
+    <select id="findByUserSeq" resultMap="PurchaseResultMap">
+        SELECT * FROM tb_purchase
+        WHERE user_seq = #{userSeq}
+        ORDER BY created_at DESC
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
+
+    <select id="countByUserSeq" resultType="int">
+        SELECT COUNT(*) FROM tb_purchase WHERE user_seq = #{userSeq}
+    </select>
+
+    <update id="updateVerified">
+        UPDATE tb_purchase
+        SET status      = 'VERIFIED',
+            verified_at = NOW()
+        WHERE purchase_seq = #{purchaseSeq}
+    </update>
+
+    <update id="updateFailed">
+        UPDATE tb_purchase
+        SET status = 'FAILED'
+        WHERE purchase_seq = #{purchaseSeq}
+    </update>
+
+    <update id="updateRefunded">
+        UPDATE tb_purchase
+        SET status        = 'REFUNDED',
+            refunded_at   = NOW(),
+            refund_reason = #{refundReason}
+        WHERE purchase_seq = #{purchaseSeq}
+    </update>
+
+</mapper>

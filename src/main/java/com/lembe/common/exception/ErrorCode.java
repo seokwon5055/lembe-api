@@ -42,7 +42,12 @@ public enum ErrorCode {
     AI_JOB_NOT_FOUND("71", "AI 생성 작업을 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
     AI_DAILY_LIMIT_EXCEEDED("72", "일일 AI 생성 한도(10회)를 초과했습니다.", HttpStatus.TOO_MANY_REQUESTS),
     AI_GLOBAL_LIMIT_EXCEEDED("73", "서비스 AI 한도 초과. 잠시 후 다시 시도해주세요.", HttpStatus.SERVICE_UNAVAILABLE),
-    AI_FREE_RETRY_EXHAUSTED("74", "무료 재생성 기회를 이미 사용했습니다.", HttpStatus.BAD_REQUEST);
+    AI_FREE_RETRY_EXHAUSTED("74", "무료 재생성 기회를 이미 사용했습니다.", HttpStatus.BAD_REQUEST),
+
+    // Purchase
+    DUPLICATE_RECEIPT("80", "이미 처리된 영수증입니다.", HttpStatus.CONFLICT),
+    RECEIPT_VERIFICATION_FAILED("81", "영수증 검증에 실패했습니다.", HttpStatus.BAD_REQUEST),
+    PRODUCT_NOT_FOUND("82", "존재하지 않는 상품입니다.", HttpStatus.BAD_REQUEST);
 
     private final String code;
     private final String message;
