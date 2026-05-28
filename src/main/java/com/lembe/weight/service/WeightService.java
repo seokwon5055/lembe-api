@@ -4,6 +4,8 @@ import com.lembe.goal.domain.Goal;
 import com.lembe.goal.domain.Milestone;
 import com.lembe.goal.mapper.GoalMapper;
 import com.lembe.goal.mapper.MilestoneMapper;
+import com.lembe.notification.domain.NotificationType;
+import com.lembe.notification.service.NotificationService;
 import com.lembe.point.domain.PointLog;
 import com.lembe.point.mapper.PointLogMapper;
 import com.lembe.user.domain.PointWallet;
@@ -35,6 +37,7 @@ public class WeightService {
     private final MilestoneMapper milestoneMapper;
     private final PointWalletMapper pointWalletMapper;
     private final PointLogMapper pointLogMapper;
+    private final NotificationService notificationService;
 
     @Transactional
     public WeightRecordResponse record(Long userSeq, WeightRecordRequest req) {
@@ -54,6 +57,9 @@ public class WeightService {
 
         // 3. 마일스톤 도달 체크
         List<Long> readyMilestones = checkMilestones(userSeq, req.weightKg());
+        if (!readyMilestones.isEmpty()) {
+            notificationService.sendToUser(userSeq, NotificationType.MILESTONE_READY);
+        }
 
         // 4. 포인트 적립 (+5P) + 로그
         int newBalance = earnPoints(userSeq, WEIGHT_LOG_POINTS, "WEIGHT_LOG",

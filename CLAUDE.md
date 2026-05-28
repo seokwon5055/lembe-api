@@ -23,8 +23,8 @@ controller → service → mapper(MyBatis XML) → DB
 
 ## DB 마이그레이션 규칙
 - Flyway V순번 파일 (`V1__`, `V2__`, ...) — 순서 엄수
-- 현재 최신: **V5** (`V5__photo_type_current.sql`)
-- 다음 마이그레이션: `V6__...`
+- 현재 최신: **V6** (`V6__notification_setting.sql`)
+- 다음 마이그레이션: `V7__...`
 
 ---
 
@@ -104,6 +104,48 @@ LOCKED → READY_TO_UNLOCK → UNLOCKED
 | GET | `/api/v1/weight/history` | 체중 히스토리 |
 | GET | `/api/v1/points/wallet` | 포인트 잔액 |
 | POST | `/api/v1/points/roulette` | 룰렛 스핀 |
+
+---
+
+## 푸시 알림 시스템 (notification 패키지)
+
+### 구조
+```
+notification/
+  controller/  DeviceController, NotificationController
+  domain/      DeviceToken, NotificationSetting, NotificationType(enum)
+  dto/         DeviceTokenRequest, NotificationSettingResponse, UpdateNotificationSettingRequest
+  mapper/      DeviceTokenMapper, NotificationSettingMapper, SchedulerQueryMapper
+  service/     FcmService(mock), NotificationService(@Async), NotificationScheduler(@Scheduled)
+               DeviceTokenService, NotificationSettingService
+```
+
+### FCM 연동 상태
+- 현재 **mock** — `FcmService.send()` 는 `log.info`만 출력
+- `application.yml`: `fcm.server-key: ${FCM_SERVER_KEY:mock}`
+- 실제 연동 절차는 `FcmService.java` TODO 주석 참조
+
+### 알림 타입 (NotificationType enum)
+| 타입 | 트리거 | 발송 방식 |
+|---|---|---|
+| `MILESTONE_READY` | 체중 기록 시 마일스톤 도달 | 이벤트 (@Async) |
+| `MILESTONE_UNLOCKED` | 마일스톤 unlock API | 이벤트 (@Async) |
+| `ROULETTE_READY` | 매일 10:00 @Scheduled | 스케줄러 |
+| `STREAK_WARNING` | 매일 21:00 @Scheduled | 스케줄러 |
+| `WEIGHT_REMINDER` | 매일 20:00 @Scheduled | 스케줄러 |
+
+### 비동기 처리
+- `AsyncConfig`: `notificationExecutor` 스레드풀 (core=2, max=10)
+- `@EnableAsync` / `@EnableScheduling`: `AsyncConfig.java`
+
+### API
+| Method | Path | 설명 |
+|---|---|---|
+| POST | `/api/v1/devices/token` | FCM 토큰 등록/갱신 |
+| GET | `/api/v1/notifications/settings` | 알림 설정 조회 |
+| PUT | `/api/v1/notifications/settings` | 알림 설정 변경 |
+
+---
 
 ## 코딩 컨벤션
 - 서비스 메서드: `@Transactional` 명시 (읽기 전용은 `readOnly = true`)

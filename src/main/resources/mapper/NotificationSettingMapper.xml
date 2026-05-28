@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.lembe.notification.mapper.NotificationSettingMapper">
+
+    <resultMap id="SettingResultMap" type="com.lembe.notification.domain.NotificationSetting">
+        <id     property="settingSeq"        column="setting_seq"/>
+        <result property="userSeq"           column="user_seq"/>
+        <result property="milestoneReady"    column="milestone_ready"/>
+        <result property="milestoneUnlocked" column="milestone_unlocked"/>
+        <result property="rouletteReady"     column="roulette_ready"/>
+        <result property="streakWarning"     column="streak_warning"/>
+        <result property="weightReminder"    column="weight_reminder"/>
+        <result property="createdAt"         column="created_at"/>
+        <result property="updatedAt"         column="updated_at"/>
+    </resultMap>
+
+    <select id="findByUserSeq" resultMap="SettingResultMap">
+        SELECT * FROM tb_notification_setting
+        WHERE user_seq = #{userSeq}
+    </select>
+
+    <insert id="upsert">
+        INSERT INTO tb_notification_setting
+            (user_seq, milestone_ready, milestone_unlocked,
+             roulette_ready, streak_warning, weight_reminder)
+        VALUES
+            (#{userSeq}, #{milestoneReady}, #{milestoneUnlocked},
+             #{rouletteReady}, #{streakWarning}, #{weightReminder})
+        ON DUPLICATE KEY UPDATE
+            milestone_ready    = VALUES(milestone_ready),
+            milestone_unlocked = VALUES(milestone_unlocked),
+            roulette_ready     = VALUES(roulette_ready),
+            streak_warning     = VALUES(streak_warning),
+            weight_reminder    = VALUES(weight_reminder),
+            updated_at         = NOW()
+    </insert>
+
+</mapper>

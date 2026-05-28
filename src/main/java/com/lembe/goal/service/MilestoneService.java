@@ -5,6 +5,8 @@ import com.lembe.common.exception.LembeException;
 import com.lembe.goal.domain.Milestone;
 import com.lembe.goal.dto.MilestoneResponse;
 import com.lembe.goal.mapper.MilestoneMapper;
+import com.lembe.notification.domain.NotificationType;
+import com.lembe.notification.service.NotificationService;
 import com.lembe.point.service.PointService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -18,6 +20,7 @@ public class MilestoneService {
 
     private final MilestoneMapper milestoneMapper;
     private final PointService pointService;
+    private final NotificationService notificationService;
 
     @Transactional
     public MilestoneResponse unlock(Long userSeq, Long milestoneSeq) {
@@ -36,6 +39,8 @@ public class MilestoneService {
 
         pointService.deduct(userSeq, UNLOCK_COST, "MILESTONE_UNLOCK", String.valueOf(milestoneSeq));
         milestoneMapper.unlockById(milestoneSeq);
+
+        notificationService.sendToUser(userSeq, NotificationType.MILESTONE_UNLOCKED);
 
         // TODO: fal.ai 연동 시 다음 마일스톤 AI 사진 생성 트리거
 

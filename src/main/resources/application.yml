@@ -45,6 +45,14 @@ storage:
     base-path: ./uploads
     base-url: http://localhost:8080/files
 
+fcm:
+  server-key: ${FCM_SERVER_KEY:mock}   # 발급 전 mock 값
+
+spring:
+  task:
+    scheduling:
+      enabled: true
+
 server:
   port: 8080
   servlet:
@@ -92,6 +100,9 @@ storage:
   local:
     base-path: ${STORAGE_LOCAL_PATH:./uploads}
     base-url: ${STORAGE_LOCAL_URL:http://localhost:8080/files}
+
+fcm:
+  server-key: ${FCM_SERVER_KEY:mock}
 
 server:
   port: 8080
@@ -142,6 +153,9 @@ storage:
   local:
     base-path: ${STORAGE_LOCAL_PATH:./uploads}
     base-url: ${STORAGE_LOCAL_URL:http://localhost:8080/files}
+
+fcm:
+  server-key: ${FCM_SERVER_KEY}
 
 server:
   port: 8080

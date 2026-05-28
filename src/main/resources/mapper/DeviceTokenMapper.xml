@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.lembe.notification.mapper.DeviceTokenMapper">
+
+    <resultMap id="DeviceTokenResultMap" type="com.lembe.notification.domain.DeviceToken">
+        <id     property="deviceTokenSeq" column="device_token_seq"/>
+        <result property="userSeq"        column="user_seq"/>
+        <result property="fcmToken"       column="fcm_token"/>
+        <result property="platform"       column="platform"/>
+        <result property="isActive"       column="is_active"/>
+        <result property="createdAt"      column="created_at"/>
+        <result property="updatedAt"      column="updated_at"/>
+    </resultMap>
+
+    <!-- 토큰 등록: 이미 있으면 user_seq/platform 갱신 후 재활성화 -->
+    <insert id="upsert">
+        INSERT INTO tb_device_token (user_seq, fcm_token, platform, is_active)
+        VALUES (#{userSeq}, #{fcmToken}, #{platform}, 1)
+        ON DUPLICATE KEY UPDATE
+            user_seq  = VALUES(user_seq),
+            platform  = VALUES(platform),
+            is_active = 1,
+            updated_at = NOW()
+    </insert>
+
+    <select id="findActiveByUserSeq" resultMap="DeviceTokenResultMap">
+        SELECT *
+        FROM tb_device_token
+        WHERE user_seq = #{userSeq}
+          AND is_active = 1
+    </select>
+
+    <update id="deactivate">
+        UPDATE tb_device_token
+        SET is_active = 0,
+            updated_at = NOW()
+        WHERE fcm_token = #{fcmToken}
+    </update>
+
+</mapper>
