@@ -34,3 +34,6 @@ logs/
 
 # Test output
 test-results/
+
+# User uploads (local storage)
+uploads/
