@@ -18,7 +18,7 @@ import java.util.List;
 public class PhotoService {
 
     private static final List<String> VALID_TYPES =
-            List.of("FACE", "BODY", "PROGRESS", "AI_GENERATED");
+            List.of("CURRENT", "AI_GENERATED", "PROGRESS");
 
     private final PhotoMapper photoMapper;
     private final StorageService storageService;
@@ -29,7 +29,7 @@ public class PhotoService {
         String normalizedType = photoType.toUpperCase();
         if (!VALID_TYPES.contains(normalizedType)) {
             throw new LembeException(ErrorCode.INVALID_INPUT,
-                    "photo_type은 FACE, BODY, PROGRESS, AI_GENERATED 중 하나여야 합니다.");
+                    "photo_type은 CURRENT, AI_GENERATED, PROGRESS 중 하나여야 합니다.");
         }
 
         StorageResult stored = storageService.store(file, userSeq, normalizedType);

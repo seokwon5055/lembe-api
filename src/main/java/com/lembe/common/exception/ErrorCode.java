@@ -28,6 +28,8 @@ public enum ErrorCode {
 
     // Milestone
     MILESTONE_NOT_FOUND("40", "마일스톤을 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
+    MILESTONE_NOT_READY("41", "아직 열 수 없는 마일스톤입니다. 목표 체중에 도달하세요.", HttpStatus.BAD_REQUEST),
+    MILESTONE_ALREADY_UNLOCKED("42", "이미 열린 마일스톤입니다.", HttpStatus.BAD_REQUEST),
 
     // Photo
     PHOTO_NOT_FOUND("50", "사진을 찾을 수 없습니다.", HttpStatus.NOT_FOUND),

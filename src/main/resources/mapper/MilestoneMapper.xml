@@ -21,6 +21,14 @@
         <result property="createdAt"            column="created_at"/>
     </resultMap>
 
+    <select id="findById" resultMap="MilestoneResultMap">
+        SELECT m.*,
+               NULL AS target_body_fat_pct,
+               NULL AS target_muscle_mass_kg
+        FROM tb_milestone m
+        WHERE milestone_seq = #{milestoneSeq}
+    </select>
+
     <select id="findByGoalSeq" resultMap="MilestoneResultMap">
         SELECT m.*,
                NULL AS target_body_fat_pct,
@@ -82,6 +90,15 @@
             photo_seq   = #{photoSeq},
             unlocked_at = NOW()
         WHERE milestone_seq = #{milestoneSeq}
+    </update>
+
+    <!-- 포인트 결제로 열기 — READY_TO_UNLOCK 상태만 전이 허용 -->
+    <update id="unlockById">
+        UPDATE tb_milestone
+        SET status      = 'UNLOCKED',
+            unlocked_at = NOW()
+        WHERE milestone_seq = #{milestoneSeq}
+          AND status        = 'READY_TO_UNLOCK'
     </update>
 
 </mapper>

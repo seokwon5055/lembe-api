@@ -10,6 +10,8 @@ import java.util.List;
 @Mapper
 public interface MilestoneMapper {
 
+    Milestone findById(Long milestoneSeq);
+
     List<Milestone> findByGoalSeq(Long goalSeq);
 
     Milestone findLastUnlockedByGoalSeq(Long goalSeq);
@@ -26,4 +28,6 @@ public interface MilestoneMapper {
 
     void unlock(@Param("milestoneSeq") Long milestoneSeq,
                 @Param("photoSeq") Long photoSeq);
+
+    void unlockById(Long milestoneSeq);
 }

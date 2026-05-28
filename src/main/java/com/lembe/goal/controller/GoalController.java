@@ -6,6 +6,7 @@ import com.lembe.goal.dto.GoalWithMilestonesResponse;
 import com.lembe.goal.dto.MilestoneResponse;
 import com.lembe.goal.dto.UpdateGoalRequest;
 import com.lembe.goal.service.GoalService;
+import com.lembe.goal.service.MilestoneService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -25,6 +26,7 @@ import java.util.List;
 public class GoalController {
 
     private final GoalService goalService;
+    private final MilestoneService milestoneService;
 
     @PostMapping("/goals")
     public ApiResponse<GoalWithMilestonesResponse> createGoal(
@@ -51,5 +53,12 @@ public class GoalController {
     public ApiResponse<List<MilestoneResponse>> getMilestones(
             @AuthenticationPrincipal Long userSeq) {
         return ApiResponse.ok(goalService.getMilestones(userSeq));
+    }
+
+    @PostMapping("/milestones/{milestoneSeq}/unlock")
+    public ApiResponse<MilestoneResponse> unlockMilestone(
+            @AuthenticationPrincipal Long userSeq,
+            @PathVariable Long milestoneSeq) {
+        return ApiResponse.ok(milestoneService.unlock(userSeq, milestoneSeq));
     }
 }
