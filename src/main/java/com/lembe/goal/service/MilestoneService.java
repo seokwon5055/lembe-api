@@ -1,5 +1,7 @@
 package com.lembe.goal.service;
 
+import com.lembe.ai.event.MilestoneUnlockedEvent;
+import com.lembe.ai.event.ProgressPhotoUploadedEvent;
 import com.lembe.common.exception.ErrorCode;
 import com.lembe.common.exception.LembeException;
 import com.lembe.goal.domain.Milestone;
@@ -7,10 +9,14 @@ import com.lembe.goal.dto.MilestoneResponse;
 import com.lembe.goal.mapper.MilestoneMapper;
 import com.lembe.notification.domain.NotificationType;
 import com.lembe.notification.service.NotificationService;
+import com.lembe.photo.dto.PhotoResponse;
+import com.lembe.photo.service.PhotoService;
 import com.lembe.point.service.PointService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 @Service
 @RequiredArgsConstructor
@@ -21,6 +27,8 @@ public class MilestoneService {
     private final MilestoneMapper milestoneMapper;
     private final PointService pointService;
     private final NotificationService notificationService;
+    private final PhotoService photoService;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Transactional
     public MilestoneResponse unlock(Long userSeq, Long milestoneSeq) {
@@ -42,8 +50,25 @@ public class MilestoneService {
 
         notificationService.sendToUser(userSeq, NotificationType.MILESTONE_UNLOCKED);
 
-        // TODO: fal.ai 연동 시 다음 마일스톤 AI 사진 생성 트리거
+        // 다음 마일스톤 AI 사진 생성 트리거 (커밋 후 비동기 실행)
+        eventPublisher.publishEvent(new MilestoneUnlockedEvent(userSeq, milestoneSeq));
 
         return MilestoneResponse.from(milestoneMapper.findById(milestoneSeq));
+    }
+
+    @Transactional
+    public PhotoResponse uploadProgressPhoto(Long userSeq, Long milestoneSeq, MultipartFile file) {
+        Milestone milestone = milestoneMapper.findById(milestoneSeq);
+        if (milestone == null || !milestone.getUserSeq().equals(userSeq)) {
+            throw new LembeException(ErrorCode.MILESTONE_NOT_FOUND);
+        }
+
+        PhotoResponse photo = photoService.upload(userSeq, file, "PROGRESS", milestoneSeq);
+
+        // 적응 학습 트리거 (커밋 후 비동기 실행)
+        eventPublisher.publishEvent(
+                new ProgressPhotoUploadedEvent(userSeq, milestoneSeq, photo.photoSeq()));
+
+        return photo;
     }
 }

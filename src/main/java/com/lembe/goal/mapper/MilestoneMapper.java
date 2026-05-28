@@ -30,4 +30,11 @@ public interface MilestoneMapper {
                 @Param("photoSeq") Long photoSeq);
 
     void unlockById(Long milestoneSeq);
+
+    // AI 사진 연동
+    Milestone findNextLockedByGoalSeq(@Param("goalSeq") Long goalSeq,
+                                      @Param("afterSequence") int afterSequence);
+
+    void updatePhotoSeq(@Param("milestoneSeq") Long milestoneSeq,
+                        @Param("photoSeq") Long photoSeq);
 }

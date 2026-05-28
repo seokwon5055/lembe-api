@@ -7,6 +7,7 @@ import com.lembe.goal.dto.MilestoneResponse;
 import com.lembe.goal.dto.UpdateGoalRequest;
 import com.lembe.goal.service.GoalService;
 import com.lembe.goal.service.MilestoneService;
+import com.lembe.photo.dto.PhotoResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -16,7 +17,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -60,5 +63,13 @@ public class GoalController {
             @AuthenticationPrincipal Long userSeq,
             @PathVariable Long milestoneSeq) {
         return ApiResponse.ok(milestoneService.unlock(userSeq, milestoneSeq));
+    }
+
+    @PostMapping("/milestones/{milestoneSeq}/upload-progress")
+    public ApiResponse<PhotoResponse> uploadProgressPhoto(
+            @AuthenticationPrincipal Long userSeq,
+            @PathVariable Long milestoneSeq,
+            @RequestParam("file") MultipartFile file) {
+        return ApiResponse.ok(milestoneService.uploadProgressPhoto(userSeq, milestoneSeq, file));
     }
 }

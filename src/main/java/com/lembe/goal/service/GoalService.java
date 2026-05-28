@@ -9,9 +9,11 @@ import com.lembe.goal.dto.GoalResponse;
 import com.lembe.goal.dto.GoalWithMilestonesResponse;
 import com.lembe.goal.dto.MilestoneResponse;
 import com.lembe.goal.dto.UpdateGoalRequest;
+import com.lembe.ai.event.GoalCreatedEvent;
 import com.lembe.goal.mapper.GoalMapper;
 import com.lembe.goal.mapper.MilestoneMapper;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,6 +26,7 @@ public class GoalService {
 
     private final GoalMapper goalMapper;
     private final MilestoneMapper milestoneMapper;
+    private final ApplicationEventPublisher eventPublisher;
     private final MilestoneCalculator calculator = new MilestoneCalculator();
 
     @Transactional
@@ -56,6 +59,9 @@ public class GoalService {
         if (!milestones.isEmpty()) {
             milestoneMapper.batchInsert(milestones);
         }
+
+        // AI 사진 생성 트리거 (커밋 후 비동기 실행)
+        eventPublisher.publishEvent(new GoalCreatedEvent(userSeq, goal.getGoalSeq()));
 
         return toResponse(goal, milestones);
     }

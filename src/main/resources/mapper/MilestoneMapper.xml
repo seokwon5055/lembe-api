@@ -101,4 +101,23 @@
           AND status        = 'READY_TO_UNLOCK'
     </update>
 
+    <!-- AI 사진 생성 후 milestone.photo_seq 업데이트 -->
+    <select id="findNextLockedByGoalSeq" resultMap="MilestoneResultMap">
+        SELECT m.*,
+               NULL AS target_body_fat_pct,
+               NULL AS target_muscle_mass_kg
+        FROM tb_milestone m
+        WHERE goal_seq   = #{goalSeq}
+          AND status     = 'LOCKED'
+          AND sort_order > #{afterSequence}
+        ORDER BY sort_order ASC
+        LIMIT 1
+    </select>
+
+    <update id="updatePhotoSeq">
+        UPDATE tb_milestone
+        SET photo_seq = #{photoSeq}
+        WHERE milestone_seq = #{milestoneSeq}
+    </update>
+
 </mapper>

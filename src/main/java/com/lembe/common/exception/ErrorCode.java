@@ -38,7 +38,11 @@ public enum ErrorCode {
     INSUFFICIENT_POINTS("60", "포인트가 부족합니다.", HttpStatus.BAD_REQUEST),
 
     // AI
-    AI_GENERATION_FAILED("70", "AI 이미지 생성에 실패했습니다.", HttpStatus.INTERNAL_SERVER_ERROR);
+    AI_GENERATION_FAILED("70", "AI 이미지 생성에 실패했습니다.", HttpStatus.INTERNAL_SERVER_ERROR),
+    AI_JOB_NOT_FOUND("71", "AI 생성 작업을 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
+    AI_DAILY_LIMIT_EXCEEDED("72", "일일 AI 생성 한도(10회)를 초과했습니다.", HttpStatus.TOO_MANY_REQUESTS),
+    AI_GLOBAL_LIMIT_EXCEEDED("73", "서비스 AI 한도 초과. 잠시 후 다시 시도해주세요.", HttpStatus.SERVICE_UNAVAILABLE),
+    AI_FREE_RETRY_EXHAUSTED("74", "무료 재생성 기회를 이미 사용했습니다.", HttpStatus.BAD_REQUEST);
 
     private final String code;
     private final String message;

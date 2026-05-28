@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.lembe.ai.mapper.AiGenerationMapper">
+
+    <resultMap id="AiJobResultMap" type="com.lembe.ai.domain.AiGenerationJob">
+        <id     property="genSeq"           column="gen_seq"/>
+        <result property="userSeq"          column="user_seq"/>
+        <result property="jobType"          column="job_type"/>
+        <result property="milestoneSeq"     column="milestone_seq"/>
+        <result property="inputPhotoSeq"    column="input_photo_seq"/>
+        <result property="resultPhotoSeq"   column="result_photo_seq"/>
+        <result property="status"           column="status"/>
+        <result property="falRequestId"     column="fal_request_id"/>
+        <result property="prompt"           column="prompt"/>
+        <result property="pointUsed"        column="point_used"/>
+        <result property="costUsd"          column="cost_usd"/>
+        <result property="isFreeRetry"      column="is_free_retry"/>
+        <result property="retryCount"       column="retry_count"/>
+        <result property="errorMsg"         column="error_msg"/>
+        <result property="requestedAt"      column="requested_at"/>
+        <result property="completedAt"      column="completed_at"/>
+    </resultMap>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="genSeq">
+        INSERT INTO tb_ai_generation
+            (user_seq, job_type, milestone_seq, input_photo_seq, status,
+             prompt, point_used, cost_usd, is_free_retry, retry_count)
+        VALUES
+            (#{userSeq}, #{jobType}, #{milestoneSeq}, #{inputPhotoSeq}, #{status},
+             #{prompt}, #{pointUsed}, #{costUsd}, #{isFreeRetry}, #{retryCount})
+    </insert>
+
+    <select id="findById" resultMap="AiJobResultMap">
+        SELECT * FROM tb_ai_generation WHERE gen_seq = #{genSeq}
+    </select>
+
+    <select id="findByUserSeq" resultMap="AiJobResultMap">
+        SELECT * FROM tb_ai_generation
+        WHERE user_seq = #{userSeq}
+        ORDER BY requested_at DESC
+    </select>
+
+    <select id="findLatestByMilestoneSeq" resultMap="AiJobResultMap">
+        SELECT * FROM tb_ai_generation
+        WHERE milestone_seq = #{milestoneSeq}
+        ORDER BY requested_at DESC
+        LIMIT 1
+    </select>
+
+    <update id="updateCompleted">
+        UPDATE tb_ai_generation
+        SET status           = 'COMPLETED',
+            result_photo_seq = #{resultPhotoSeq},
+            fal_request_id   = #{falRequestId},
+            cost_usd         = #{costUsd},
+            completed_at     = NOW()
+        WHERE gen_seq = #{genSeq}
+    </update>
+
+    <update id="updateFailed">
+        UPDATE tb_ai_generation
+        SET status       = 'FAILED',
+            error_msg    = #{errorMsg},
+            completed_at = NOW()
+        WHERE gen_seq = #{genSeq}
+    </update>
+
+    <select id="countTodayByUserSeq" resultType="int">
+        SELECT COUNT(*)
+        FROM tb_ai_generation
+        WHERE user_seq         = #{userSeq}
+          AND DATE(requested_at) = CURDATE()
+    </select>
+
+    <select id="sumTodayCostUsd" resultType="java.math.BigDecimal">
+        SELECT COALESCE(SUM(cost_usd), 0)
+        FROM tb_ai_generation
+        WHERE DATE(requested_at) = CURDATE()
+          AND status             = 'COMPLETED'
+    </select>
+
+    <select id="existsFreeRetry" resultType="boolean">
+        SELECT COUNT(*) > 0
+        FROM tb_ai_generation
+        WHERE user_seq      = #{userSeq}
+          AND milestone_seq = #{milestoneSeq}
+          AND is_free_retry = 1
+          AND status        = 'COMPLETED'
+    </select>
+
+</mapper>
