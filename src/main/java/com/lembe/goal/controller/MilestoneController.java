@@ -17,10 +17,10 @@ public class MilestoneController {
 
     private final MilestoneService milestoneService;
 
-    @PostMapping("/{milestoneSeq}/achieve")
-    public ApiResponse<MilestoneResponse> achieve(
+    @PostMapping("/{milestoneSeq}/unlock")
+    public ApiResponse<MilestoneResponse> unlock(
             @AuthenticationPrincipal Long userSeq,
             @PathVariable Long milestoneSeq) {
-        return ApiResponse.ok(milestoneService.achieve(userSeq, milestoneSeq));
+        return ApiResponse.ok(milestoneService.unlock(userSeq, milestoneSeq));
     }
 }
