@@ -25,11 +25,11 @@ public class AiGenerationEventListener {
     @Async("aiExecutor")
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void onGoalCreated(GoalCreatedEvent event) {
-        log.info("[AI Event] onGoalCreated: userSeq={} goalSeq={}", event.userSeq(), event.goalSeq());
+        log.info("[AI Event] onGoalCreated: ucode={} goalSeq={}", event.ucode(), event.goalSeq());
         try {
-            aiGenerationService.generateInitial(event.userSeq(), event.goalSeq());
+            aiGenerationService.generateInitial(event.ucode(), event.goalSeq());
         } catch (Exception e) {
-            log.error("[AI Event] generateInitial failed: userSeq={}", event.userSeq(), e);
+            log.error("[AI Event] generateInitial failed: ucode={}", event.ucode(), e);
         }
     }
 
@@ -50,7 +50,7 @@ public class AiGenerationEventListener {
         log.info("[AI Event] onProgressPhoto: milestoneSeq={} photoSeq={}",
                 event.milestoneSeq(), event.photoSeq());
         try {
-            aiGenerationService.adaptiveUpdate(event.userSeq(), event.milestoneSeq(), event.photoSeq());
+            aiGenerationService.adaptiveUpdate(event.ucode(), event.milestoneSeq(), event.photoSeq());
         } catch (Exception e) {
             log.error("[AI Event] adaptiveUpdate failed: milestoneSeq={}", event.milestoneSeq(), e);
         }

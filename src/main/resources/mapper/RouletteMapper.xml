@@ -6,21 +6,21 @@
 
     <resultMap id="RouletteLogResultMap" type="com.lembe.roulette.domain.RouletteLog">
         <id     property="rouletteLogSeq" column="roulette_log_seq"/>
-        <result property="userSeq"        column="user_seq"/>
+        <result property="ucode"        column="ucode"/>
         <result property="spinType"       column="spin_type"/>
         <result property="pointsWon"      column="points_won"/>
         <result property="spunAt"         column="spun_at"/>
     </resultMap>
 
     <insert id="insert" useGeneratedKeys="true" keyProperty="rouletteLogSeq">
-        INSERT INTO tb_roulette_log (user_seq, spin_type, points_won, spun_at)
-        VALUES (#{userSeq}, #{spinType}, #{pointsWon}, #{spunAt})
+        INSERT INTO roulette_log (ucode, spin_type, points_won, spun_at)
+        VALUES (#{ucode}, #{spinType}, #{pointsWon}, #{spunAt})
     </insert>
 
     <select id="findLastFreeByUserSeq" resultMap="RouletteLogResultMap">
         SELECT *
-        FROM tb_roulette_log
-        WHERE user_seq  = #{userSeq}
+        FROM roulette_log
+        WHERE ucode  = #{ucode}
           AND spin_type = 'FREE'
         ORDER BY spun_at DESC
         LIMIT 1
@@ -28,8 +28,8 @@
 
     <select id="countAdBonusTodayByUserSeq" resultType="int">
         SELECT COUNT(*)
-        FROM tb_roulette_log
-        WHERE user_seq  = #{userSeq}
+        FROM roulette_log
+        WHERE ucode  = #{ucode}
           AND spin_type = 'AD_BONUS'
           AND DATE(spun_at) = CURDATE()
     </select>

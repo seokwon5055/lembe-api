@@ -3,7 +3,8 @@ package com.lembe.user.dto;
 import com.lembe.user.domain.User;
 
 public record UserMeResponse(
-        Long userSeq,
+        Long seq,
+        String ucode,
         String email,
         String nickname,
         String profileImgUrl,
@@ -12,7 +13,8 @@ public record UserMeResponse(
 ) {
     public static UserMeResponse of(User user, int pointBalance) {
         return new UserMeResponse(
-                user.getUserSeq(),
+                user.getSeq(),
+                user.getUcode(),
                 user.getEmail(),
                 user.getNickname(),
                 user.getProfileImgUrl(),

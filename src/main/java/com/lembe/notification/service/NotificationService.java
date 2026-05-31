@@ -30,20 +30,20 @@ public class NotificationService {
     private final FcmService fcmService;
 
     @Async("notificationExecutor")
-    public void sendToUser(Long userSeq, NotificationType type) {
-        sendToUser(userSeq, type, Map.of());
+    public void sendToUser(String ucode, NotificationType type) {
+        sendToUser(ucode, type, Map.of());
     }
 
     @Async("notificationExecutor")
-    public void sendToUser(Long userSeq, NotificationType type, Map<String, String> data) {
-        if (!isEnabled(userSeq, type)) {
-            log.debug("[Notification] skip user={} type={} (disabled)", userSeq, type);
+    public void sendToUser(String ucode, NotificationType type, Map<String, String> data) {
+        if (!isEnabled(ucode, type)) {
+            log.debug("[Notification] skip user={} type={} (disabled)", ucode, type);
             return;
         }
 
-        List<DeviceToken> tokens = deviceTokenMapper.findActiveByUserSeq(userSeq);
+        List<DeviceToken> tokens = deviceTokenMapper.findActiveByUcode(ucode);
         if (tokens.isEmpty()) {
-            log.debug("[Notification] skip user={} type={} (no device token)", userSeq, type);
+            log.debug("[Notification] skip user={} type={} (no device token)", ucode, type);
             return;
         }
 
@@ -51,14 +51,14 @@ public class NotificationService {
             boolean success = fcmService.send(token.getFcmToken(), type, data);
             if (!success) {
                 log.warn("[Notification] invalid token deactivated: user={} token={}",
-                        userSeq, token.getFcmToken());
+                        ucode, token.getFcmToken());
                 deviceTokenMapper.deactivate(token.getFcmToken());
             }
         }
     }
 
-    private boolean isEnabled(Long userSeq, NotificationType type) {
-        NotificationSetting setting = notificationSettingMapper.findByUserSeq(userSeq);
+    private boolean isEnabled(String ucode, NotificationType type) {
+        NotificationSetting setting = notificationSettingMapper.findByUcode(ucode);
         if (setting == null) {
             return true;  // 설정 없으면 기본값 전체 허용
         }

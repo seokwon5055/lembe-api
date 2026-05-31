@@ -6,7 +6,7 @@
 
     <resultMap id="UserProfileResultMap" type="com.lembe.user.domain.UserProfile">
         <id     property="profileSeq"           column="profile_seq"/>
-        <result property="userSeq"              column="user_seq"/>
+        <result property="ucode"              column="ucode"/>
         <result property="gender"               column="gender"/>
         <result property="birthYear"            column="birth_year"/>
         <result property="heightCm"             column="height_cm"/>
@@ -16,14 +16,14 @@
     </resultMap>
 
     <insert id="insert" useGeneratedKeys="true" keyProperty="profileSeq">
-        INSERT INTO tb_user_profile (user_seq, gender, birth_year, height_cm, notification_enabled)
-        VALUES (#{userSeq}, #{gender}, #{birthYear}, #{heightCm}, #{notificationEnabled})
+        INSERT INTO user_profile (ucode, gender, birth_year, height_cm, notification_enabled)
+        VALUES (#{ucode}, #{gender}, #{birthYear}, #{heightCm}, #{notificationEnabled})
     </insert>
 
     <select id="findByUserSeq" resultMap="UserProfileResultMap">
         SELECT *
-        FROM tb_user_profile
-        WHERE user_seq = #{userSeq}
+        FROM user_profile
+        WHERE ucode = #{ucode}
     </select>
 
 </mapper>

@@ -1,17 +1,23 @@
 package com.lembe.photo.domain;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import lombok.Getter;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 @Builder
 public class Photo {
 
     private Long photoSeq;
-    private Long userSeq;
+    private String ucode;
     private Long milestoneSeq;
     private String photoType;       // CURRENT | AI_GENERATED | PROGRESS
     private String storageKey;      // 상대 경로 (삭제용)

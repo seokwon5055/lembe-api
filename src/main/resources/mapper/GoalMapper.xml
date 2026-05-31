@@ -6,7 +6,7 @@
 
     <resultMap id="GoalResultMap" type="com.lembe.goal.domain.Goal">
         <id     property="goalSeq"              column="goal_seq"/>
-        <result property="userSeq"              column="user_seq"/>
+        <result property="ucode"              column="ucode"/>
         <result property="mode"                 column="mode"/>
         <result property="status"               column="status"/>
         <result property="startWeight"          column="start_weight"/>
@@ -20,10 +20,10 @@
         <result property="updatedAt"            column="updated_at"/>
     </resultMap>
 
-    <select id="findActiveByUserSeq" resultMap="GoalResultMap">
+    <select id="findActiveByUcode" resultMap="GoalResultMap">
         SELECT *
-        FROM tb_goal
-        WHERE user_seq = #{userSeq}
+        FROM goal
+        WHERE ucode = #{ucode}
           AND status   = 'ACTIVE'
         ORDER BY created_at DESC
         LIMIT 1
@@ -31,34 +31,47 @@
 
     <select id="findById" resultMap="GoalResultMap">
         SELECT *
-        FROM tb_goal
+        FROM goal
         WHERE goal_seq = #{goalSeq}
     </select>
 
     <insert id="insert" useGeneratedKeys="true" keyProperty="goalSeq">
-        INSERT INTO tb_goal
-            (user_seq, mode, status, start_weight, target_weight,
+        INSERT INTO goal
+            (ucode, mode, status, start_weight, target_weight,
              start_body_fat_pct, target_body_fat_pct,
              start_muscle_mass_kg, target_muscle_mass_kg,
              ai_regen_cost)
         VALUES
-            (#{userSeq}, #{mode}, 'ACTIVE', #{startWeight}, #{targetWeight},
+            (#{ucode}, #{mode}, 'ACTIVE', #{startWeight}, #{targetWeight},
              #{startBodyFatPct}, #{targetBodyFatPct},
              #{startMuscleMassKg}, #{targetMuscleMassKg},
              30)
     </insert>
 
     <update id="updateStatus">
-        UPDATE tb_goal
+        UPDATE goal
         SET status = #{status}
         WHERE goal_seq = #{goalSeq}
     </update>
 
     <update id="updateTarget">
-        UPDATE tb_goal
+        UPDATE goal
         SET target_weight          = #{targetWeight},
             target_body_fat_pct    = #{targetBodyFatPct},
             target_muscle_mass_kg  = #{targetMuscleMassKg}
+        WHERE goal_seq = #{goalSeq}
+    </update>
+
+    <update id="updateFull">
+        UPDATE goal
+        SET mode                  = #{mode},
+            start_weight          = #{startWeight},
+            target_weight         = #{targetWeight},
+            start_body_fat_pct    = #{startBodyFatPct},
+            target_body_fat_pct   = #{targetBodyFatPct},
+            start_muscle_mass_kg  = #{startMuscleMassKg},
+            target_muscle_mass_kg = #{targetMuscleMassKg},
+            status                = 'ACTIVE'
         WHERE goal_seq = #{goalSeq}
     </update>
 

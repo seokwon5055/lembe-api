@@ -5,45 +5,45 @@
 <mapper namespace="com.lembe.notification.mapper.SchedulerQueryMapper">
 
     <!-- 오늘 (logged_at = CURDATE()) 체중 기록이 없는 활성 사용자 -->
-    <select id="findUserSeqsWithNoWeightLogToday" resultType="long">
-        SELECT u.user_seq
-        FROM tb_user u
+    <select id="findUserSeqsWithNoWeightLogToday" resultType="string">
+        SELECT u.ucode
+        FROM `user` u
         WHERE u.is_deleted = 0
           AND NOT EXISTS (
               SELECT 1
-              FROM tb_weight_log w
-              WHERE w.user_seq  = u.user_seq
+              FROM weight_log w
+              WHERE w.ucode    = u.ucode
                 AND w.logged_at = CURDATE()
           )
     </select>
 
     <!-- 마지막 FREE 룰렛이 24시간 이상 지났거나 한 번도 안 돈 활성 사용자 -->
-    <select id="findUserSeqsRouletteReady" resultType="long">
-        SELECT u.user_seq
-        FROM tb_user u
+    <select id="findUserSeqsRouletteReady" resultType="string">
+        SELECT u.ucode
+        FROM `user` u
         WHERE u.is_deleted = 0
           AND (
               NOT EXISTS (
-                  SELECT 1 FROM tb_roulette_log r
-                  WHERE r.user_seq = u.user_seq AND r.spin_type = 'FREE'
+                  SELECT 1 FROM roulette_log r
+                  WHERE r.ucode = u.ucode AND r.spin_type = 'FREE'
               )
               OR (
-                  SELECT MAX(r.spun_at) FROM tb_roulette_log r
-                  WHERE r.user_seq = u.user_seq AND r.spin_type = 'FREE'
+                  SELECT MAX(r.spun_at) FROM roulette_log r
+                  WHERE r.ucode = u.ucode AND r.spin_type = 'FREE'
               ) &lt; NOW() - INTERVAL 24 HOUR
           )
     </select>
 
     <!-- streak > 0 이고 오늘 체중 기록이 없는 사용자 (streak 끊길 위험) -->
-    <select id="findUserSeqsStreakAtRisk" resultType="long">
-        SELECT u.user_seq
-        FROM tb_user u
+    <select id="findUserSeqsStreakAtRisk" resultType="string">
+        SELECT u.ucode
+        FROM `user` u
         WHERE u.is_deleted    = 0
           AND u.streak_count  > 0
           AND NOT EXISTS (
               SELECT 1
-              FROM tb_weight_log w
-              WHERE w.user_seq  = u.user_seq
+              FROM weight_log w
+              WHERE w.ucode    = u.ucode
                 AND w.logged_at = CURDATE()
           )
     </select>

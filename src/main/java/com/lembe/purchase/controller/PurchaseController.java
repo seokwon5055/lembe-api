@@ -25,17 +25,17 @@ public class PurchaseController {
 
     @PostMapping
     public ApiResponse<PurchaseResponse> purchase(
-            @AuthenticationPrincipal Long userSeq,
+            @AuthenticationPrincipal String ucode,
             @Valid @RequestBody PurchaseRequest request) {
-        return ApiResponse.ok(purchaseService.purchase(userSeq, request));
+        return ApiResponse.ok(purchaseService.purchase(ucode, request));
     }
 
     @GetMapping("/history")
     public ApiResponse<PurchaseHistoryResponse> history(
-            @AuthenticationPrincipal Long userSeq,
+            @AuthenticationPrincipal String ucode,
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "20") int size) {
-        return ApiResponse.ok(purchaseService.getHistory(userSeq, page, size));
+        return ApiResponse.ok(purchaseService.getHistory(ucode, page, size));
     }
 
     /**

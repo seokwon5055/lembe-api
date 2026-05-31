@@ -40,10 +40,10 @@ public class WeightService {
     private final NotificationService notificationService;
 
     @Transactional
-    public WeightRecordResponse record(Long userSeq, WeightRecordRequest req) {
+    public WeightRecordResponse record(String ucode, WeightRecordRequest req) {
         // 1. 체중 기록
         WeightRecord record = WeightRecord.builder()
-                .userSeq(userSeq)
+                .ucode(ucode)
                 .weightKg(req.weightKg())
                 .bodyFatPct(req.bodyFatPct())
                 .muscleMassKg(req.muscleMassKg())
@@ -53,28 +53,28 @@ public class WeightService {
         weightMapper.insert(record);
 
         // 2. Streak 업데이트
-        StreakService.StreakResult streak = streakService.update(userSeq, req.loggedAt());
+        StreakService.StreakResult streak = streakService.update(ucode, req.loggedAt());
 
         // 3. 마일스톤 도달 체크
-        List<Long> readyMilestones = checkMilestones(userSeq, req.weightKg());
+        List<Long> readyMilestones = checkMilestones(ucode, req.weightKg());
         if (!readyMilestones.isEmpty()) {
-            notificationService.sendToUser(userSeq, NotificationType.MILESTONE_READY);
+            notificationService.sendToUser(ucode, NotificationType.MILESTONE_READY);
         }
 
         // 4. 포인트 적립 (+5P) + 로그
-        int newBalance = earnPoints(userSeq, WEIGHT_LOG_POINTS, "WEIGHT_LOG",
+        int newBalance = earnPoints(ucode, WEIGHT_LOG_POINTS, "WEIGHT_LOG",
                 String.valueOf(record.getLogSeq()));
 
         log.debug("[Weight] user={} weight={} streak={} +{}P balance={}",
-                userSeq, req.weightKg(), streak.streakCount(), WEIGHT_LOG_POINTS, newBalance);
+                ucode, req.weightKg(), streak.streakCount(), WEIGHT_LOG_POINTS, newBalance);
 
         return WeightRecordResponse.of(record, streak.streakCount(), WEIGHT_LOG_POINTS, readyMilestones);
     }
 
     @Transactional(readOnly = true)
-    public WeightHistoryResponse getHistory(Long userSeq, int days) {
+    public WeightHistoryResponse getHistory(String ucode, int days) {
         LocalDate fromDate = (days <= 0) ? LocalDate.of(2000, 1, 1) : LocalDate.now().minusDays(days);
-        List<WeightRecord> records = weightMapper.findHistory(userSeq, fromDate);
+        List<WeightRecord> records = weightMapper.findHistory(ucode, fromDate);
 
         if (records.isEmpty()) {
             return new WeightHistoryResponse(List.of(), null, null, null, days);
@@ -89,20 +89,20 @@ public class WeightService {
     }
 
     @Transactional
-    public void syncHealthData(Long userSeq, List<WeightRecordRequest> records) {
+    public void syncHealthData(String ucode, List<WeightRecordRequest> records) {
         // 헬스케어 동기화: 날짜별 중복 제거 후 INSERT
         for (WeightRecordRequest req : records) {
-            WeightRecord existing = weightMapper.findByUserAndDate(userSeq, req.loggedAt());
+            WeightRecord existing = weightMapper.findByUcodeAndDate(ucode, req.loggedAt());
             if (existing == null) {
-                record(userSeq, req);
+                record(ucode, req);
             }
         }
     }
 
     // ── private helpers ──────────────────────────────────────────────────────
 
-    private List<Long> checkMilestones(Long userSeq, java.math.BigDecimal currentWeight) {
-        Goal goal = goalMapper.findActiveByUserSeq(userSeq);
+    private List<Long> checkMilestones(String ucode, java.math.BigDecimal currentWeight) {
+        Goal goal = goalMapper.findActiveByUcode(ucode);
         if (goal == null) return Collections.emptyList();
 
         List<Milestone> reached = milestoneMapper.findReachedLocked(goal.getGoalSeq(), currentWeight);
@@ -110,13 +110,13 @@ public class WeightService {
         return reached.stream().map(Milestone::getMilestoneSeq).toList();
     }
 
-    private int earnPoints(Long userSeq, int delta, String reason, String refId) {
-        pointWalletMapper.updateBalance(userSeq, delta);
-        PointWallet wallet = pointWalletMapper.findByUserSeq(userSeq);
+    private int earnPoints(String ucode, int delta, String reason, String refId) {
+        pointWalletMapper.updateBalance(ucode, delta);
+        PointWallet wallet = pointWalletMapper.findByUcode(ucode);
         int balanceAfter = (wallet != null) ? wallet.getBalance() : delta;
 
         pointLogMapper.insert(PointLog.builder()
-                .userSeq(userSeq)
+                .ucode(ucode)
                 .delta(delta)
                 .balanceAfter(balanceAfter)
                 .reason(reason)

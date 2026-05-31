@@ -14,9 +14,9 @@ public class DeviceTokenService {
     private final DeviceTokenMapper deviceTokenMapper;
 
     @Transactional
-    public void registerToken(Long userSeq, DeviceTokenRequest req) {
+    public void registerToken(String ucode, DeviceTokenRequest req) {
         DeviceToken token = DeviceToken.builder()
-                .userSeq(userSeq)
+                .ucode(ucode)
                 .fcmToken(req.fcmToken())
                 .platform(req.platform())
                 .build();

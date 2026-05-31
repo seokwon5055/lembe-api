@@ -19,11 +19,11 @@ public interface PurchaseMapper {
     boolean existsByPlatformAndTransactionId(@Param("platform") String platform,
                                              @Param("transactionId") String transactionId);
 
-    List<Purchase> findByUserSeq(@Param("userSeq") Long userSeq,
+    List<Purchase> findByUcode(@Param("ucode") String ucode,
                                   @Param("offset") int offset,
                                   @Param("limit") int limit);
 
-    int countByUserSeq(Long userSeq);
+    int countByUserSeq(String ucode);
 
     void updateVerified(Long purchaseSeq);
 

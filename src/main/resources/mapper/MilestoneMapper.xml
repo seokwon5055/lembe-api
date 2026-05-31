@@ -7,13 +7,11 @@
     <resultMap id="MilestoneResultMap" type="com.lembe.goal.domain.Milestone">
         <id     property="milestoneSeq"         column="milestone_seq"/>
         <result property="goalSeq"              column="goal_seq"/>
-        <result property="userSeq"              column="user_seq"/>
+        <result property="ucode"              column="ucode"/>
         <result property="sequence"             column="sort_order"/>
         <result property="label"                column="label"/>
         <result property="targetWeight"         column="target_weight"/>
         <result property="lossKg"               column="loss_kg"/>
-        <result property="targetBodyFatPct"     column="target_body_fat_pct"/>
-        <result property="targetMuscleMassKg"   column="target_muscle_mass_kg"/>
         <result property="isFinal"              column="is_final"/>
         <result property="status"               column="status"/>
         <result property="photoSeq"             column="photo_seq"/>
@@ -22,27 +20,21 @@
     </resultMap>
 
     <select id="findById" resultMap="MilestoneResultMap">
-        SELECT m.*,
-               NULL AS target_body_fat_pct,
-               NULL AS target_muscle_mass_kg
-        FROM tb_milestone m
+        SELECT m.*
+        FROM milestone m
         WHERE milestone_seq = #{milestoneSeq}
     </select>
 
     <select id="findByGoalSeq" resultMap="MilestoneResultMap">
-        SELECT m.*,
-               NULL AS target_body_fat_pct,
-               NULL AS target_muscle_mass_kg
-        FROM tb_milestone m
+        SELECT m.*
+        FROM milestone m
         WHERE goal_seq = #{goalSeq}
         ORDER BY sort_order
     </select>
 
     <select id="findLastUnlockedByGoalSeq" resultMap="MilestoneResultMap">
-        SELECT m.*,
-               NULL AS target_body_fat_pct,
-               NULL AS target_muscle_mass_kg
-        FROM tb_milestone m
+        SELECT m.*
+        FROM milestone m
         WHERE goal_seq = #{goalSeq}
           AND status   = 'UNLOCKED'
         ORDER BY sort_order DESC
@@ -50,21 +42,19 @@
     </select>
 
     <insert id="batchInsert" useGeneratedKeys="true" keyProperty="milestoneSeq">
-        INSERT INTO tb_milestone
-            (goal_seq, user_seq, sort_order, label, target_weight, loss_kg,
+        INSERT INTO milestone
+            (goal_seq, ucode, sort_order, label, target_weight, loss_kg,
              is_final, status)
         VALUES
         <foreach collection="list" item="m" separator=",">
-            (#{m.goalSeq}, #{m.userSeq}, #{m.sequence}, #{m.label},
+            (#{m.goalSeq}, #{m.ucode}, #{m.sequence}, #{m.label},
              #{m.targetWeight}, #{m.lossKg}, #{m.isFinal}, 'LOCKED')
         </foreach>
     </insert>
 
     <select id="findReachedLocked" resultMap="MilestoneResultMap">
-        SELECT m.*,
-               NULL AS target_body_fat_pct,
-               NULL AS target_muscle_mass_kg
-        FROM tb_milestone m
+        SELECT m.*
+        FROM milestone m
         WHERE goal_seq    = #{goalSeq}
           AND status      = 'LOCKED'
           AND target_weight >= #{currentWeight}
@@ -72,20 +62,25 @@
     </select>
 
     <update id="markReadyToUnlock">
-        UPDATE tb_milestone
+        UPDATE milestone
         SET status = 'READY_TO_UNLOCK'
         WHERE milestone_seq = #{milestoneSeq}
           AND status        = 'LOCKED'
     </update>
 
     <delete id="deleteLockedByGoalSeq">
-        DELETE FROM tb_milestone
+        DELETE FROM milestone
         WHERE goal_seq = #{goalSeq}
           AND status   = 'LOCKED'
     </delete>
 
+    <delete id="deleteAllByGoalSeq">
+        DELETE FROM milestone
+        WHERE goal_seq = #{goalSeq}
+    </delete>
+
     <update id="unlock">
-        UPDATE tb_milestone
+        UPDATE milestone
         SET status      = 'UNLOCKED',
             photo_seq   = #{photoSeq},
             unlocked_at = NOW()
@@ -94,7 +89,7 @@
 
     <!-- 포인트 결제로 열기 — READY_TO_UNLOCK 상태만 전이 허용 -->
     <update id="unlockById">
-        UPDATE tb_milestone
+        UPDATE milestone
         SET status      = 'UNLOCKED',
             unlocked_at = NOW()
         WHERE milestone_seq = #{milestoneSeq}
@@ -103,10 +98,8 @@
 
     <!-- AI 사진 생성 후 milestone.photo_seq 업데이트 -->
     <select id="findNextLockedByGoalSeq" resultMap="MilestoneResultMap">
-        SELECT m.*,
-               NULL AS target_body_fat_pct,
-               NULL AS target_muscle_mass_kg
-        FROM tb_milestone m
+        SELECT m.*
+        FROM milestone m
         WHERE goal_seq   = #{goalSeq}
           AND status     = 'LOCKED'
           AND sort_order > #{afterSequence}
@@ -115,7 +108,7 @@
     </select>
 
     <update id="updatePhotoSeq">
-        UPDATE tb_milestone
+        UPDATE milestone
         SET photo_seq = #{photoSeq}
         WHERE milestone_seq = #{milestoneSeq}
     </update>

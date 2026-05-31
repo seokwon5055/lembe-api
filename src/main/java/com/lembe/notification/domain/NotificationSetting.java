@@ -1,15 +1,21 @@
 package com.lembe.notification.domain;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import lombok.Getter;
 
 import java.time.LocalDateTime;
 
 @Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 @Builder
 public class NotificationSetting {
     private Long settingSeq;
-    private Long userSeq;
+    private String ucode;
     private boolean milestoneReady;
     private boolean milestoneUnlocked;
     private boolean rouletteReady;
@@ -18,9 +24,9 @@ public class NotificationSetting {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
-    public static NotificationSetting defaultFor(Long userSeq) {
+    public static NotificationSetting defaultFor(String ucode) {
         return NotificationSetting.builder()
-                .userSeq(userSeq)
+                .ucode(ucode)
                 .milestoneReady(true)
                 .milestoneUnlocked(true)
                 .rouletteReady(true)

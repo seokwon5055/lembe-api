@@ -39,7 +39,7 @@ public class AiGenerationService {
      * 목표 생성 시: 첫 마일스톤 + 최종 마일스톤 AI 사진 생성 (2장)
      */
     @Transactional
-    public void generateInitial(Long userSeq, Long goalSeq) {
+    public void generateInitial(String ucode, Long goalSeq) {
         costGuard.checkGlobalLimit();
 
         List<Milestone> milestones = milestoneMapper.findByGoalSeq(goalSeq);
@@ -51,10 +51,10 @@ public class AiGenerationService {
                 .findFirst()
                 .orElse(milestones.get(milestones.size() - 1));
 
-        processJob(userSeq, first, "INITIAL", null);
+        processJob(ucode, first, "INITIAL", null);
 
         if (!first.getMilestoneSeq().equals(finalMs.getMilestoneSeq())) {
-            processJob(userSeq, finalMs, "INITIAL", null);
+            processJob(ucode, finalMs, "INITIAL", null);
         }
     }
 
@@ -71,14 +71,14 @@ public class AiGenerationService {
         if (next == null) return;
 
         costGuard.checkGlobalLimit();
-        processJob(current.getUserSeq(), next, "MILESTONE", null);
+        processJob(current.getUcode(), next, "MILESTONE", null);
     }
 
     /**
      * 실제 경과 사진 업로드 시: 다음 + 최종 마일스톤 AI 사진 갱신 (적응 학습)
      */
     @Transactional
-    public void adaptiveUpdate(Long userSeq, Long milestoneSeq, Long realPhotoSeq) {
+    public void adaptiveUpdate(String ucode, Long milestoneSeq, Long realPhotoSeq) {
         Milestone milestone = milestoneMapper.findById(milestoneSeq);
         if (milestone == null) return;
 
@@ -94,7 +94,7 @@ public class AiGenerationService {
         Milestone next = milestoneMapper.findNextLockedByGoalSeq(
                 milestone.getGoalSeq(), milestone.getSequence());
         if (next != null) {
-            processJob(userSeq, next, "ADAPTIVE", inputUrl);
+            processJob(ucode, next, "ADAPTIVE", inputUrl);
         }
 
         // 최종 마일스톤 갱신
@@ -103,7 +103,7 @@ public class AiGenerationService {
                 .filter(Milestone::isFinal)
                 .filter(m -> "LOCKED".equals(m.getStatus()))
                 .findFirst()
-                .ifPresent(finalMs -> processJob(userSeq, finalMs, "FINAL_UPDATE", inputUrl));
+                .ifPresent(finalMs -> processJob(ucode, finalMs, "FINAL_UPDATE", inputUrl));
     }
 
     // ── API 호출 ───────────────────────────────────────────────────────────────
@@ -112,25 +112,25 @@ public class AiGenerationService {
      * 마일스톤 AI 사진 재생성
      */
     @Transactional
-    public AiJobResponse regenerate(Long userSeq, Long milestoneSeq, boolean isFreeSameImage) {
+    public AiJobResponse regenerate(String ucode, Long milestoneSeq, boolean isFreeSameImage) {
         Milestone milestone = milestoneMapper.findById(milestoneSeq);
-        if (milestone == null || !milestone.getUserSeq().equals(userSeq)) {
+        if (milestone == null || !milestone.getUcode().equals(ucode)) {
             throw new LembeException(ErrorCode.MILESTONE_NOT_FOUND);
         }
 
-        if (isFreeSameImage && aiGenerationMapper.existsFreeRetry(userSeq, milestoneSeq)) {
+        if (isFreeSameImage && aiGenerationMapper.existsFreeRetry(ucode, milestoneSeq)) {
             throw new LembeException(ErrorCode.AI_FREE_RETRY_EXHAUSTED);
         }
 
-        costGuard.checkUserLimit(userSeq);
+        costGuard.checkUserLimit(ucode);
         costGuard.checkGlobalLimit();
 
-        AiGenerationJob job = buildJob(userSeq, milestone, "MILESTONE", isFreeSameImage, null);
+        AiGenerationJob job = buildJob(ucode, milestone, "MILESTONE", isFreeSameImage, null);
         aiGenerationMapper.insert(job);
 
         try {
             FalAiResponse aiResult = callFalAi(null, buildPrompt(milestone));
-            Long resultPhotoSeq = saveAiPhoto(userSeq, milestone, aiResult.imageUrl());
+            Long resultPhotoSeq = saveAiPhoto(ucode, milestone, aiResult.imageUrl());
 
             aiGenerationMapper.updateCompleted(
                     job.getGenSeq(), resultPhotoSeq, aiResult.requestId(), aiResult.costUsd());
@@ -159,13 +159,13 @@ public class AiGenerationService {
 
     // ── internal helpers ───────────────────────────────────────────────────────
 
-    private void processJob(Long userSeq, Milestone milestone, String jobType, String inputUrl) {
-        AiGenerationJob job = buildJob(userSeq, milestone, jobType, false, null);
+    private void processJob(String ucode, Milestone milestone, String jobType, String inputUrl) {
+        AiGenerationJob job = buildJob(ucode, milestone, jobType, false, null);
         aiGenerationMapper.insert(job);
 
         try {
             FalAiResponse aiResult = callFalAi(inputUrl, buildPrompt(milestone));
-            Long resultPhotoSeq = saveAiPhoto(userSeq, milestone, aiResult.imageUrl());
+            Long resultPhotoSeq = saveAiPhoto(ucode, milestone, aiResult.imageUrl());
 
             aiGenerationMapper.updateCompleted(
                     job.getGenSeq(), resultPhotoSeq, aiResult.requestId(), aiResult.costUsd());
@@ -181,11 +181,11 @@ public class AiGenerationService {
     }
 
     private FalAiResponse callFalAi(String inputUrl, String prompt) {
-        // TODO: fal.ai 연동 시 실제 사진 URL 전달 (getCurrentPhotoUrl(userSeq))
+        // TODO: fal.ai 연동 시 실제 사진 URL 전달 (getCurrentPhotoUrl(ucode))
         return falAiClient.generateImage(new FalAiRequest(inputUrl, prompt));
     }
 
-    private Long saveAiPhoto(Long userSeq, Milestone milestone, String imageUrl) {
+    private Long saveAiPhoto(String ucode, Milestone milestone, String imageUrl) {
         // 기존 사진이 있으면 version+1 + parent 참조
         int version = 1;
         Long parentPhotoSeq = null;
@@ -198,7 +198,7 @@ public class AiGenerationService {
         }
 
         Photo photo = Photo.builder()
-                .userSeq(userSeq)
+                .ucode(ucode)
                 .milestoneSeq(milestone.getMilestoneSeq())
                 .photoType("AI_GENERATED")
                 .storageKey("mock/ai/" + UUID.randomUUID())
@@ -213,11 +213,11 @@ public class AiGenerationService {
         return photo.getPhotoSeq();
     }
 
-    private AiGenerationJob buildJob(Long userSeq, Milestone milestone,
+    private AiGenerationJob buildJob(String ucode, Milestone milestone,
                                       String jobType, boolean isFreeRetry,
                                       Long inputPhotoSeq) {
         return AiGenerationJob.builder()
-                .userSeq(userSeq)
+                .ucode(ucode)
                 .jobType(jobType)
                 .milestoneSeq(milestone.getMilestoneSeq())
                 .inputPhotoSeq(inputPhotoSeq)

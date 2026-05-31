@@ -6,7 +6,7 @@ import org.apache.ibatis.annotations.Mapper;
 @Mapper
 public interface NotificationSettingMapper {
 
-    NotificationSetting findByUserSeq(Long userSeq);
+    NotificationSetting findByUcode(String ucode);
 
     void upsert(NotificationSetting setting);
 }

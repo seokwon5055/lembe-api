@@ -47,7 +47,7 @@ public class PurchaseService {
      * 현재 mock은 즉시 반환하므로 단일 @Transactional로 처리.
      */
     @Transactional
-    public PurchaseResponse purchase(Long userSeq, PurchaseRequest request) {
+    public PurchaseResponse purchase(String ucode, PurchaseRequest request) {
         String platform = request.platform().toUpperCase();
         if (!VALID_PLATFORMS.contains(platform)) {
             throw new LembeException(ErrorCode.INVALID_INPUT,
@@ -64,7 +64,7 @@ public class PurchaseService {
 
         // 3. PENDING 상태로 구매 기록 (DB unique key가 race condition 최종 방어)
         Purchase purchase = Purchase.builder()
-                .userSeq(userSeq)
+                .ucode(ucode)
                 .platform(platform)
                 .productId(request.productId())
                 .transactionId(request.transactionId())
@@ -94,14 +94,14 @@ public class PurchaseService {
         // 5. 포인트 적립
         int totalPoints = product.getTotalPoints();
         int balanceAfter = pointService.add(
-                userSeq, totalPoints, "PURCHASE",
+                ucode, totalPoints, "PURCHASE",
                 String.valueOf(purchase.getPurchaseSeq()));
 
         // 6. VERIFIED 처리
         purchaseMapper.updateVerified(purchase.getPurchaseSeq());
 
-        log.info("[Purchase] userSeq={} product={} points={}+{} balance={}",
-                userSeq, product.getProductId(),
+        log.info("[Purchase] ucode={} product={} points={}+{} balance={}",
+                ucode, product.getProductId(),
                 product.getPoints(), product.getBonusPoints(), balanceAfter);
 
         return PurchaseResponse.from(
@@ -111,12 +111,12 @@ public class PurchaseService {
     // ── 구매 내역 ─────────────────────────────────────────────────────────────
 
     @Transactional(readOnly = true)
-    public PurchaseHistoryResponse getHistory(Long userSeq, int page, int size) {
+    public PurchaseHistoryResponse getHistory(String ucode, int page, int size) {
         int offset = (page - 1) * size;
         List<PurchaseHistoryResponse.Item> items = purchaseMapper
-                .findByUserSeq(userSeq, offset, size)
+                .findByUcode(ucode, offset, size)
                 .stream().map(PurchaseHistoryResponse.Item::from).toList();
-        int total = purchaseMapper.countByUserSeq(userSeq);
+        int total = purchaseMapper.countByUserSeq(ucode);
         return new PurchaseHistoryResponse(items, total, page, size);
     }
 
@@ -150,12 +150,12 @@ public class PurchaseService {
 
         // 포인트 차감 (마이너스 허용 — 잔액이 부족해도 차감)
         int totalPoints = purchase.getPointsGranted() + purchase.getBonusPoints();
-        deductForRefund(purchase.getUserSeq(), totalPoints, purchase.getPurchaseSeq());
+        deductForRefund(purchase.getUcode(), totalPoints, purchase.getPurchaseSeq());
 
         purchaseMapper.updateRefunded(purchase.getPurchaseSeq(), request.reason());
 
-        log.info("[Refund] processed: purchaseSeq={} userSeq={} points=-{}",
-                purchase.getPurchaseSeq(), purchase.getUserSeq(), totalPoints);
+        log.info("[Refund] processed: purchaseSeq={} ucode={} points=-{}",
+                purchase.getPurchaseSeq(), purchase.getUcode(), totalPoints);
     }
 
     // ── internal helpers ───────────────────────────────────────────────────────
@@ -172,14 +172,14 @@ public class PurchaseService {
      * 환불 전용 포인트 차감 — 잔액 부족해도 마이너스 허용
      * (일반 deduct와 달리 잔액 >= 차감액 조건 없음)
      */
-    private void deductForRefund(Long userSeq, int amount, Long purchaseSeq) {
-        pointWalletMapper.updateBalanceForRefund(userSeq, -amount);
+    private void deductForRefund(String ucode, int amount, Long purchaseSeq) {
+        pointWalletMapper.updateBalanceForRefund(ucode, -amount);
         int balanceAfter = 0;
-        var wallet = pointWalletMapper.findByUserSeq(userSeq);
+        var wallet = pointWalletMapper.findByUcode(ucode);
         if (wallet != null) balanceAfter = wallet.getBalance();
 
         pointLogMapper.insert(PointLog.builder()
-                .userSeq(userSeq)
+                .ucode(ucode)
                 .delta(-amount)
                 .balanceAfter(balanceAfter)
                 .reason("PURCHASE_REFUND")

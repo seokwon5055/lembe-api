@@ -40,17 +40,18 @@ public class DevController {
                     .email(email)
                     .nickname(nickname)
                     .build());
-            user = userMapper.findByEmail(email);
+            // trigger가 server-side에서 ucode 설정하므로 seq로 재조회
+            user = userMapper.findById(userMapper.findByEmail(email).getSeq());
 
             pointWalletMapper.insert(PointWallet.builder()
-                    .userSeq(user.getUserSeq())
+                    .ucode(user.getUcode())
                     .balance(100)
                     .build());
         }
 
-        String token = jwtTokenProvider.createAccessToken(user.getUserSeq());
-        return ApiResponse.ok(new DevLoginResponse(user.getUserSeq(), token));
+        String token = jwtTokenProvider.createAccessToken(user.getUcode());
+        return ApiResponse.ok(new DevLoginResponse(user.getUcode(), token));
     }
 
-    public record DevLoginResponse(Long userSeq, String accessToken) {}
+    public record DevLoginResponse(String ucode, String accessToken) {}
 }

@@ -24,7 +24,7 @@ public class PhotoService {
     private final StorageService storageService;
 
     @Transactional
-    public PhotoResponse upload(Long userSeq, MultipartFile file,
+    public PhotoResponse upload(String ucode, MultipartFile file,
                                 String photoType, Long milestoneSeq) {
         String normalizedType = photoType.toUpperCase();
         if (!VALID_TYPES.contains(normalizedType)) {
@@ -32,10 +32,10 @@ public class PhotoService {
                     "photo_type은 CURRENT, AI_GENERATED, PROGRESS 중 하나여야 합니다.");
         }
 
-        StorageResult stored = storageService.store(file, userSeq, normalizedType);
+        StorageResult stored = storageService.store(file, ucode, normalizedType);
 
         Photo photo = Photo.builder()
-                .userSeq(userSeq)
+                .ucode(ucode)
                 .milestoneSeq(milestoneSeq)
                 .photoType(normalizedType)
                 .storageKey(stored.storagePath())
@@ -50,29 +50,29 @@ public class PhotoService {
     }
 
     @Transactional(readOnly = true)
-    public List<PhotoResponse> getPhotos(Long userSeq, String photoType) {
+    public List<PhotoResponse> getPhotos(String ucode, String photoType) {
         String type = (photoType != null) ? photoType.toUpperCase() : null;
-        return photoMapper.findByUserSeq(userSeq, type)
+        return photoMapper.findByUcode(ucode, type)
                 .stream().map(PhotoResponse::from).toList();
     }
 
     @Transactional
-    public PhotoResponse setMain(Long userSeq, Long photoSeq) {
+    public PhotoResponse setMain(String ucode, Long photoSeq) {
         Photo photo = photoMapper.findById(photoSeq);
-        if (photo == null || !photo.getUserSeq().equals(userSeq)) {
+        if (photo == null || !photo.getUcode().equals(ucode)) {
             throw new LembeException(ErrorCode.PHOTO_NOT_FOUND);
         }
-        photoMapper.updateMain(userSeq, photo.getPhotoType(), photoSeq);
+        photoMapper.updateMain(ucode, photo.getPhotoType(), photoSeq);
         return PhotoResponse.from(photoMapper.findById(photoSeq));
     }
 
     @Transactional
-    public void delete(Long userSeq, Long photoSeq) {
+    public void delete(String ucode, Long photoSeq) {
         Photo photo = photoMapper.findById(photoSeq);
-        if (photo == null || !photo.getUserSeq().equals(userSeq)) {
+        if (photo == null || !photo.getUcode().equals(ucode)) {
             throw new LembeException(ErrorCode.PHOTO_NOT_FOUND);
         }
-        photoMapper.softDelete(photoSeq, userSeq);
+        photoMapper.softDelete(photoSeq, ucode);
         storageService.delete(photo.getStorageKey());
     }
 }

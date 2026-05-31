@@ -6,7 +6,7 @@
 
     <resultMap id="SocialAccountResultMap" type="com.lembe.user.domain.SocialAccount">
         <id     property="socialAccountSeq" column="social_account_seq"/>
-        <result property="userSeq"          column="user_seq"/>
+        <result property="ucode"          column="ucode"/>
         <result property="provider"         column="provider"/>
         <result property="providerId"       column="provider_id"/>
         <result property="email"            column="email"/>
@@ -16,14 +16,14 @@
 
     <select id="findByProviderAndProviderId" resultMap="SocialAccountResultMap">
         SELECT *
-        FROM tb_social_account
+        FROM social_account
         WHERE provider    = #{provider}
           AND provider_id = #{providerId}
     </select>
 
     <insert id="insert" useGeneratedKeys="true" keyProperty="socialAccountSeq">
-        INSERT INTO tb_social_account (user_seq, provider, provider_id, email)
-        VALUES (#{userSeq}, #{provider}, #{providerId}, #{email})
+        INSERT INTO social_account (ucode, provider, provider_id, email)
+        VALUES (#{ucode}, #{provider}, #{providerId}, #{email})
     </insert>
 
 </mapper>

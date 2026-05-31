@@ -39,12 +39,12 @@ public class SocialLoginService {
 
         if (existing != null) {
             // 기존 회원 — 로그인
-            return issueTokens(existing.getUserSeq(), false);
+            return issueTokens(existing.getUcode(), false, null);
         }
 
         // 신규 회원 — 가입 트랜잭션
-        Long userSeq = registerNewUser(provider, userInfo);
-        return issueTokens(userSeq, true);
+        String ucode = registerNewUser(provider, userInfo);
+        return issueTokens(ucode, true, userInfo.nickname());
     }
 
     private SocialUserInfo fetchUserInfo(String provider, String accessToken) {
@@ -56,48 +56,51 @@ public class SocialLoginService {
         };
     }
 
-    private Long registerNewUser(String provider, SocialUserInfo userInfo) {
-        // 1. tb_user INSERT
+    private String registerNewUser(String provider, SocialUserInfo userInfo) {
+        // 1. user INSERT — trigger가 ucode 자동 생성
         User user = User.builder()
                 .email(userInfo.email())
                 .nickname(userInfo.nickname())
                 .profileImgUrl(userInfo.profileImageUrl())
                 .build();
         userMapper.insert(user);
-        Long userSeq = user.getUserSeq();
+        // trigger가 server-side에서 ucode를 설정하므로 seq로 재조회
+        user = userMapper.findById(user.getSeq());
+        String ucode = user.getUcode();
 
-        // 2. tb_social_account INSERT
+        // 2. social_account INSERT
         SocialAccount socialAccount = SocialAccount.builder()
-                .userSeq(userSeq)
+                .ucode(ucode)
                 .provider(provider.toUpperCase())
                 .providerId(userInfo.providerId())
                 .email(userInfo.email())
                 .build();
         socialAccountMapper.insert(socialAccount);
 
-        // 3. tb_user_profile INSERT (기본값)
+        // 3. user_profile INSERT (기본값)
         UserProfile userProfile = UserProfile.builder()
-                .userSeq(userSeq)
+                .ucode(ucode)
                 .notificationEnabled(true)
                 .build();
         userProfileMapper.insert(userProfile);
 
-        // 4. tb_point_wallet INSERT (가입 보너스)
+        // 4. point_wallet INSERT (가입 보너스)
         PointWallet wallet = PointWallet.builder()
-                .userSeq(userSeq)
+                .ucode(ucode)
                 .balance(SIGNUP_BONUS_POINTS)
                 .build();
         pointWalletMapper.insert(wallet);
 
-        log.info("[SocialLogin] new user registered: userSeq={}, provider={}", userSeq, provider);
-        return userSeq;
+        log.info("[SocialLogin] new user registered: ucode={}, provider={}", ucode, provider);
+        return ucode;
     }
 
-    private SocialLoginResponse issueTokens(Long userSeq, boolean isNewUser) {
+    private SocialLoginResponse issueTokens(String ucode, boolean isNewUser, String kakaoNickname) {
         return new SocialLoginResponse(
-                jwtTokenProvider.createAccessToken(userSeq),
-                jwtTokenProvider.createRefreshToken(userSeq),
-                isNewUser
+                jwtTokenProvider.createAccessToken(ucode),
+                jwtTokenProvider.createRefreshToken(ucode),
+                isNewUser,
+                kakaoNickname
         );
     }
 }

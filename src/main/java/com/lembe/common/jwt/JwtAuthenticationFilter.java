@@ -33,9 +33,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         if (StringUtils.hasText(token)) {
             try {
                 jwtTokenProvider.validateAccessToken(token);
-                Long userId = jwtTokenProvider.getUserId(token);
+                String ucode = jwtTokenProvider.getUcode(token);
                 UsernamePasswordAuthenticationToken authentication =
-                        new UsernamePasswordAuthenticationToken(userId, null, List.of());
+                        new UsernamePasswordAuthenticationToken(ucode, null, List.of());
                 SecurityContextHolder.getContext().setAuthentication(authentication);
             } catch (LembeException e) {
                 log.debug("[JWT] invalid token: {}", e.getMessage());

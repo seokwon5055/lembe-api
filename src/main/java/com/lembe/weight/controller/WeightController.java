@@ -26,23 +26,23 @@ public class WeightController {
 
     @PostMapping
     public ApiResponse<WeightRecordResponse> record(
-            @AuthenticationPrincipal Long userSeq,
+            @AuthenticationPrincipal String ucode,
             @Valid @RequestBody WeightRecordRequest request) {
-        return ApiResponse.ok(weightService.record(userSeq, request));
+        return ApiResponse.ok(weightService.record(ucode, request));
     }
 
     @GetMapping("/history")
     public ApiResponse<WeightHistoryResponse> history(
-            @AuthenticationPrincipal Long userSeq,
+            @AuthenticationPrincipal String ucode,
             @RequestParam(defaultValue = "30") int days) {
-        return ApiResponse.ok(weightService.getHistory(userSeq, days));
+        return ApiResponse.ok(weightService.getHistory(ucode, days));
     }
 
     @PostMapping("/sync")
     public ApiResponse<Void> sync(
-            @AuthenticationPrincipal Long userSeq,
+            @AuthenticationPrincipal String ucode,
             @RequestBody List<@Valid WeightRecordRequest> records) {
-        weightService.syncHealthData(userSeq, records);
+        weightService.syncHealthData(ucode, records);
         return ApiResponse.ok();
     }
 }

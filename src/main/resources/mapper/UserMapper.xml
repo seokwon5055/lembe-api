@@ -5,7 +5,8 @@
 <mapper namespace="com.lembe.user.mapper.UserMapper">
 
     <resultMap id="UserResultMap" type="com.lembe.user.domain.User">
-        <id     property="userSeq"       column="user_seq"/>
+        <id     property="seq"           column="seq"/>
+        <result property="ucode"         column="ucode"/>
         <result property="email"         column="email"/>
         <result property="password"      column="password"/>
         <result property="nickname"      column="nickname"/>
@@ -19,28 +20,48 @@
 
     <select id="findById" resultMap="UserResultMap">
         SELECT *
-        FROM tb_user
-        WHERE user_seq = #{userSeq}
+        FROM `user`
+        WHERE seq = #{seq}
+          AND is_deleted = 0
+    </select>
+
+    <select id="findByUcode" resultMap="UserResultMap">
+        SELECT *
+        FROM `user`
+        WHERE ucode = #{ucode}
           AND is_deleted = 0
     </select>
 
     <select id="findByEmail" resultMap="UserResultMap">
         SELECT *
-        FROM tb_user
+        FROM `user`
         WHERE email = #{email}
           AND is_deleted = 0
     </select>
 
-    <insert id="insert" useGeneratedKeys="true" keyProperty="userSeq">
-        INSERT INTO tb_user (email, password, nickname, profile_img_url)
+    <insert id="insert" useGeneratedKeys="true" keyProperty="seq">
+        INSERT INTO `user` (email, password, nickname, profile_img_url)
         VALUES (#{email}, #{password}, #{nickname}, #{profileImgUrl})
     </insert>
 
+    <select id="existsByNickname" resultType="boolean">
+        SELECT COUNT(*) > 0
+        FROM `user`
+        WHERE nickname = #{nickname}
+          AND is_deleted = 0
+    </select>
+
+    <update id="updateNickname">
+        UPDATE `user`
+        SET nickname = #{nickname}
+        WHERE ucode = #{ucode}
+    </update>
+
     <update id="updateStreak">
-        UPDATE tb_user
-        SET streak_count  = #{streakCount},
+        UPDATE `user`
+        SET streak_count   = #{streakCount},
             last_streak_dt = #{lastStreakDt}
-        WHERE user_seq = #{userSeq}
+        WHERE ucode = #{ucode}
     </update>
 
 </mapper>

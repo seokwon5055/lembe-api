@@ -6,7 +6,7 @@
 
     <resultMap id="PurchaseResultMap" type="com.lembe.purchase.domain.Purchase">
         <id     property="purchaseSeq"   column="purchase_seq"/>
-        <result property="userSeq"       column="user_seq"/>
+        <result property="ucode"       column="ucode"/>
         <result property="platform"      column="platform"/>
         <result property="productId"     column="product_id"/>
         <result property="transactionId" column="transaction_id"/>
@@ -22,20 +22,20 @@
     </resultMap>
 
     <insert id="insert" useGeneratedKeys="true" keyProperty="purchaseSeq">
-        INSERT INTO tb_purchase
-            (user_seq, platform, product_id, transaction_id, receipt,
+        INSERT INTO purchase
+            (ucode, platform, product_id, transaction_id, receipt,
              points_granted, bonus_points, amount_krw, status)
         VALUES
-            (#{userSeq}, #{platform}, #{productId}, #{transactionId}, #{receipt},
+            (#{ucode}, #{platform}, #{productId}, #{transactionId}, #{receipt},
              #{pointsGranted}, #{bonusPoints}, #{amountKrw}, #{status})
     </insert>
 
     <select id="findById" resultMap="PurchaseResultMap">
-        SELECT * FROM tb_purchase WHERE purchase_seq = #{purchaseSeq}
+        SELECT * FROM purchase WHERE purchase_seq = #{purchaseSeq}
     </select>
 
     <select id="findByPlatformAndTransactionId" resultMap="PurchaseResultMap">
-        SELECT * FROM tb_purchase
+        SELECT * FROM purchase
         WHERE platform       = #{platform}
           AND transaction_id = #{transactionId}
         LIMIT 1
@@ -43,37 +43,37 @@
 
     <select id="existsByPlatformAndTransactionId" resultType="boolean">
         SELECT COUNT(*) > 0
-        FROM tb_purchase
+        FROM purchase
         WHERE platform       = #{platform}
           AND transaction_id = #{transactionId}
     </select>
 
     <select id="findByUserSeq" resultMap="PurchaseResultMap">
-        SELECT * FROM tb_purchase
-        WHERE user_seq = #{userSeq}
+        SELECT * FROM purchase
+        WHERE ucode = #{ucode}
         ORDER BY created_at DESC
         LIMIT #{limit} OFFSET #{offset}
     </select>
 
     <select id="countByUserSeq" resultType="int">
-        SELECT COUNT(*) FROM tb_purchase WHERE user_seq = #{userSeq}
+        SELECT COUNT(*) FROM purchase WHERE ucode = #{ucode}
     </select>
 
     <update id="updateVerified">
-        UPDATE tb_purchase
+        UPDATE purchase
         SET status      = 'VERIFIED',
             verified_at = NOW()
         WHERE purchase_seq = #{purchaseSeq}
     </update>
 
     <update id="updateFailed">
-        UPDATE tb_purchase
+        UPDATE purchase
         SET status = 'FAILED'
         WHERE purchase_seq = #{purchaseSeq}
     </update>
 
     <update id="updateRefunded">
-        UPDATE tb_purchase
+        UPDATE purchase
         SET status        = 'REFUNDED',
             refunded_at   = NOW(),
             refund_reason = #{refundReason}

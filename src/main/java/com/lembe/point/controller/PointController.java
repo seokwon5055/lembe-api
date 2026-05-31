@@ -31,34 +31,34 @@ public class PointController {
     private final RouletteService rouletteService;
 
     @GetMapping("/wallet")
-    public ApiResponse<WalletResponse> wallet(@AuthenticationPrincipal Long userSeq) {
-        PointWallet wallet = pointWalletMapper.findByUserSeq(userSeq);
+    public ApiResponse<WalletResponse> wallet(@AuthenticationPrincipal String ucode) {
+        PointWallet wallet = pointWalletMapper.findByUcode(ucode);
         if (wallet == null) throw new LembeException(ErrorCode.NOT_FOUND, "지갑이 없습니다.");
         return ApiResponse.ok(WalletResponse.from(wallet));
     }
 
     @GetMapping("/transactions")
     public ApiResponse<TransactionHistoryResponse> transactions(
-            @AuthenticationPrincipal Long userSeq,
+            @AuthenticationPrincipal String ucode,
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "20") int size) {
 
         int offset = (page - 1) * size;
         List<PointTransactionResponse> items = pointLogMapper
-                .findHistory(userSeq, offset, size)
+                .findHistory(ucode, offset, size)
                 .stream().map(PointTransactionResponse::from).toList();
-        int total = pointLogMapper.countByUserSeq(userSeq);
+        int total = pointLogMapper.countByUserSeq(ucode);
 
         return ApiResponse.ok(new TransactionHistoryResponse(items, total, page, size));
     }
 
     @PostMapping("/roulette")
-    public ApiResponse<RouletteResponse> roulette(@AuthenticationPrincipal Long userSeq) {
-        return ApiResponse.ok(rouletteService.spin(userSeq));
+    public ApiResponse<RouletteResponse> roulette(@AuthenticationPrincipal String ucode) {
+        return ApiResponse.ok(rouletteService.spin(ucode));
     }
 
     @PostMapping("/roulette/ad")
-    public ApiResponse<RouletteResponse> rouletteAd(@AuthenticationPrincipal Long userSeq) {
-        return ApiResponse.ok(rouletteService.spinAd(userSeq));
+    public ApiResponse<RouletteResponse> rouletteAd(@AuthenticationPrincipal String ucode) {
+        return ApiResponse.ok(rouletteService.spinAd(ucode));
     }
 }

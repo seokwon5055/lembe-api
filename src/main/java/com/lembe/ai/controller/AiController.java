@@ -27,9 +27,9 @@ public class AiController {
      */
     @PostMapping("/generate/initial")
     public ApiResponse<Void> generateInitial(
-            @AuthenticationPrincipal Long userSeq,
+            @AuthenticationPrincipal String ucode,
             @RequestParam Long goalSeq) {
-        aiGenerationService.generateInitial(userSeq, goalSeq);
+        aiGenerationService.generateInitial(ucode, goalSeq);
         return ApiResponse.ok(null);
     }
 
@@ -40,11 +40,11 @@ public class AiController {
      */
     @PostMapping("/jobs/{milestoneSeq}/regenerate")
     public ApiResponse<AiJobResponse> regenerate(
-            @AuthenticationPrincipal Long userSeq,
+            @AuthenticationPrincipal String ucode,
             @PathVariable Long milestoneSeq,
             @Valid @RequestBody RegenerateRequest request) {
         return ApiResponse.ok(
-                aiGenerationService.regenerate(userSeq, milestoneSeq, request.isFreeSameImage()));
+                aiGenerationService.regenerate(ucode, milestoneSeq, request.isFreeSameImage()));
     }
 
     /**
@@ -52,7 +52,7 @@ public class AiController {
      */
     @GetMapping("/jobs/{genSeq}")
     public ApiResponse<AiJobResponse> getJob(
-            @AuthenticationPrincipal Long userSeq,
+            @AuthenticationPrincipal String ucode,
             @PathVariable Long genSeq) {
         return ApiResponse.ok(aiGenerationService.getJob(genSeq));
     }

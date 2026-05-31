@@ -27,32 +27,32 @@ public class PhotoController {
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ApiResponse<PhotoResponse> upload(
-            @AuthenticationPrincipal Long userSeq,
+            @AuthenticationPrincipal String ucode,
             @RequestParam("file") MultipartFile file,
             @RequestParam("photoType") String photoType,
             @RequestParam(value = "milestoneSeq", required = false) Long milestoneSeq) {
-        return ApiResponse.ok(photoService.upload(userSeq, file, photoType, milestoneSeq));
+        return ApiResponse.ok(photoService.upload(ucode, file, photoType, milestoneSeq));
     }
 
     @GetMapping
     public ApiResponse<List<PhotoResponse>> getPhotos(
-            @AuthenticationPrincipal Long userSeq,
+            @AuthenticationPrincipal String ucode,
             @RequestParam(required = false) String photoType) {
-        return ApiResponse.ok(photoService.getPhotos(userSeq, photoType));
+        return ApiResponse.ok(photoService.getPhotos(ucode, photoType));
     }
 
     @PutMapping("/{photoSeq}/main")
     public ApiResponse<PhotoResponse> setMain(
-            @AuthenticationPrincipal Long userSeq,
+            @AuthenticationPrincipal String ucode,
             @PathVariable Long photoSeq) {
-        return ApiResponse.ok(photoService.setMain(userSeq, photoSeq));
+        return ApiResponse.ok(photoService.setMain(ucode, photoSeq));
     }
 
     @DeleteMapping("/{photoSeq}")
     public ApiResponse<Void> delete(
-            @AuthenticationPrincipal Long userSeq,
+            @AuthenticationPrincipal String ucode,
             @PathVariable Long photoSeq) {
-        photoService.delete(userSeq, photoSeq);
+        photoService.delete(ucode, photoSeq);
         return ApiResponse.ok();
     }
 }

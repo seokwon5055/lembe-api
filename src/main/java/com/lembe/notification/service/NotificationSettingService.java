@@ -15,18 +15,18 @@ public class NotificationSettingService {
     private final NotificationSettingMapper notificationSettingMapper;
 
     @Transactional(readOnly = true)
-    public NotificationSettingResponse getSettings(Long userSeq) {
-        NotificationSetting setting = notificationSettingMapper.findByUserSeq(userSeq);
+    public NotificationSettingResponse getSettings(String ucode) {
+        NotificationSetting setting = notificationSettingMapper.findByUcode(ucode);
         if (setting == null) {
-            setting = NotificationSetting.defaultFor(userSeq);
+            setting = NotificationSetting.defaultFor(ucode);
         }
         return NotificationSettingResponse.from(setting);
     }
 
     @Transactional
-    public NotificationSettingResponse updateSettings(Long userSeq, UpdateNotificationSettingRequest req) {
+    public NotificationSettingResponse updateSettings(String ucode, UpdateNotificationSettingRequest req) {
         NotificationSetting setting = NotificationSetting.builder()
-                .userSeq(userSeq)
+                .ucode(ucode)
                 .milestoneReady(req.milestoneReady())
                 .milestoneUnlocked(req.milestoneUnlocked())
                 .rouletteReady(req.rouletteReady())

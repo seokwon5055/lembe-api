@@ -13,15 +13,15 @@ public interface PhotoMapper {
 
     Photo findById(Long photoSeq);
 
-    List<Photo> findByUserSeq(@Param("userSeq") Long userSeq,
+    List<Photo> findByUcode(@Param("ucode") String ucode,
                               @Param("photoType") String photoType);  // null 이면 전체
 
-    List<Photo> findMainByUserSeq(Long userSeq);
+    List<Photo> findMainByUserSeq(String ucode);
 
-    void updateMain(@Param("userSeq") Long userSeq,
+    void updateMain(@Param("ucode") String ucode,
                     @Param("photoType") String photoType,
                     @Param("photoSeq") Long photoSeq);
 
     void softDelete(@Param("photoSeq") Long photoSeq,
-                    @Param("userSeq") Long userSeq);
+                    @Param("ucode") String ucode);
 }

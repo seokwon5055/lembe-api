@@ -21,14 +21,14 @@ public class NotificationController {
 
     @GetMapping("/settings")
     public ApiResponse<NotificationSettingResponse> getSettings(
-            @AuthenticationPrincipal Long userSeq) {
-        return ApiResponse.ok(notificationSettingService.getSettings(userSeq));
+            @AuthenticationPrincipal String ucode) {
+        return ApiResponse.ok(notificationSettingService.getSettings(ucode));
     }
 
     @PutMapping("/settings")
     public ApiResponse<NotificationSettingResponse> updateSettings(
-            @AuthenticationPrincipal Long userSeq,
+            @AuthenticationPrincipal String ucode,
             @RequestBody UpdateNotificationSettingRequest request) {
-        return ApiResponse.ok(notificationSettingService.updateSettings(userSeq, request));
+        return ApiResponse.ok(notificationSettingService.updateSettings(ucode, request));
     }
 }

@@ -1,16 +1,22 @@
 package com.lembe.purchase.domain;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import lombok.Getter;
 
 import java.time.LocalDateTime;
 
 @Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 @Builder
 public class Purchase {
 
     private Long purchaseSeq;
-    private Long userSeq;
+    private String ucode;
     private String platform;         // IOS | ANDROID
     private String productId;
     private String transactionId;

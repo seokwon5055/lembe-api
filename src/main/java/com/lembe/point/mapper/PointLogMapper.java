@@ -11,9 +11,9 @@ public interface PointLogMapper {
 
     void insert(PointLog pointLog);
 
-    List<PointLog> findHistory(@Param("userSeq") Long userSeq,
+    List<PointLog> findHistory(@Param("ucode") String ucode,
                                @Param("offset") int offset,
                                @Param("limit") int limit);
 
-    int countByUserSeq(Long userSeq);
+    int countByUserSeq(String ucode);
 }

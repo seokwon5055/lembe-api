@@ -6,7 +6,7 @@
 
     <resultMap id="AiJobResultMap" type="com.lembe.ai.domain.AiGenerationJob">
         <id     property="genSeq"           column="gen_seq"/>
-        <result property="userSeq"          column="user_seq"/>
+        <result property="ucode"          column="ucode"/>
         <result property="jobType"          column="job_type"/>
         <result property="milestoneSeq"     column="milestone_seq"/>
         <result property="inputPhotoSeq"    column="input_photo_seq"/>
@@ -24,33 +24,33 @@
     </resultMap>
 
     <insert id="insert" useGeneratedKeys="true" keyProperty="genSeq">
-        INSERT INTO tb_ai_generation
-            (user_seq, job_type, milestone_seq, input_photo_seq, status,
+        INSERT INTO ai_generation
+            (ucode, job_type, milestone_seq, input_photo_seq, status,
              prompt, point_used, cost_usd, is_free_retry, retry_count)
         VALUES
-            (#{userSeq}, #{jobType}, #{milestoneSeq}, #{inputPhotoSeq}, #{status},
+            (#{ucode}, #{jobType}, #{milestoneSeq}, #{inputPhotoSeq}, #{status},
              #{prompt}, #{pointUsed}, #{costUsd}, #{isFreeRetry}, #{retryCount})
     </insert>
 
     <select id="findById" resultMap="AiJobResultMap">
-        SELECT * FROM tb_ai_generation WHERE gen_seq = #{genSeq}
+        SELECT * FROM ai_generation WHERE gen_seq = #{genSeq}
     </select>
 
     <select id="findByUserSeq" resultMap="AiJobResultMap">
-        SELECT * FROM tb_ai_generation
-        WHERE user_seq = #{userSeq}
+        SELECT * FROM ai_generation
+        WHERE ucode = #{ucode}
         ORDER BY requested_at DESC
     </select>
 
     <select id="findLatestByMilestoneSeq" resultMap="AiJobResultMap">
-        SELECT * FROM tb_ai_generation
+        SELECT * FROM ai_generation
         WHERE milestone_seq = #{milestoneSeq}
         ORDER BY requested_at DESC
         LIMIT 1
     </select>
 
     <update id="updateCompleted">
-        UPDATE tb_ai_generation
+        UPDATE ai_generation
         SET status           = 'COMPLETED',
             result_photo_seq = #{resultPhotoSeq},
             fal_request_id   = #{falRequestId},
@@ -60,7 +60,7 @@
     </update>
 
     <update id="updateFailed">
-        UPDATE tb_ai_generation
+        UPDATE ai_generation
         SET status       = 'FAILED',
             error_msg    = #{errorMsg},
             completed_at = NOW()
@@ -69,22 +69,22 @@
 
     <select id="countTodayByUserSeq" resultType="int">
         SELECT COUNT(*)
-        FROM tb_ai_generation
-        WHERE user_seq         = #{userSeq}
+        FROM ai_generation
+        WHERE ucode         = #{ucode}
           AND DATE(requested_at) = CURDATE()
     </select>
 
     <select id="sumTodayCostUsd" resultType="java.math.BigDecimal">
         SELECT COALESCE(SUM(cost_usd), 0)
-        FROM tb_ai_generation
+        FROM ai_generation
         WHERE DATE(requested_at) = CURDATE()
           AND status             = 'COMPLETED'
     </select>
 
     <select id="existsFreeRetry" resultType="boolean">
         SELECT COUNT(*) > 0
-        FROM tb_ai_generation
-        WHERE user_seq      = #{userSeq}
+        FROM ai_generation
+        WHERE ucode      = #{ucode}
           AND milestone_seq = #{milestoneSeq}
           AND is_free_retry = 1
           AND status        = 'COMPLETED'

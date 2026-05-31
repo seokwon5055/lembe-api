@@ -20,27 +20,27 @@ public class NotificationScheduler {
     /** 매일 10:00 — 무료 룰렛 가능 알림 */
     @Scheduled(cron = "0 0 10 * * *", zone = "Asia/Seoul")
     public void sendRouletteReady() {
-        List<Long> targets = schedulerQueryMapper.findUserSeqsRouletteReady();
+        List<String> targets = schedulerQueryMapper.findUserSeqsRouletteReady();
         log.info("[Scheduler] ROULETTE_READY targets={}", targets.size());
-        targets.forEach(userSeq ->
-                notificationService.sendToUser(userSeq, NotificationType.ROULETTE_READY));
+        targets.forEach(ucode ->
+                notificationService.sendToUser(ucode, NotificationType.ROULETTE_READY));
     }
 
     /** 매일 20:00 — 체중 미기록 사용자 리마인더 */
     @Scheduled(cron = "0 0 20 * * *", zone = "Asia/Seoul")
     public void sendWeightReminder() {
-        List<Long> targets = schedulerQueryMapper.findUserSeqsWithNoWeightLogToday();
+        List<String> targets = schedulerQueryMapper.findUserSeqsWithNoWeightLogToday();
         log.info("[Scheduler] WEIGHT_REMINDER targets={}", targets.size());
-        targets.forEach(userSeq ->
-                notificationService.sendToUser(userSeq, NotificationType.WEIGHT_REMINDER));
+        targets.forEach(ucode ->
+                notificationService.sendToUser(ucode, NotificationType.WEIGHT_REMINDER));
     }
 
     /** 매일 21:00 — streak 끊길 위험 경고 */
     @Scheduled(cron = "0 0 21 * * *", zone = "Asia/Seoul")
     public void sendStreakWarning() {
-        List<Long> targets = schedulerQueryMapper.findUserSeqsStreakAtRisk();
+        List<String> targets = schedulerQueryMapper.findUserSeqsStreakAtRisk();
         log.info("[Scheduler] STREAK_WARNING targets={}", targets.size());
-        targets.forEach(userSeq ->
-                notificationService.sendToUser(userSeq, NotificationType.STREAK_WARNING));
+        targets.forEach(ucode ->
+                notificationService.sendToUser(ucode, NotificationType.STREAK_WARNING));
     }
 }

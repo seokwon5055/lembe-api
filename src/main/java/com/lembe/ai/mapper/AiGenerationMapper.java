@@ -14,7 +14,7 @@ public interface AiGenerationMapper {
 
     AiGenerationJob findById(Long genSeq);
 
-    List<AiGenerationJob> findByUserSeq(Long userSeq);
+    List<AiGenerationJob> findByUcode(String ucode);
 
     AiGenerationJob findLatestByMilestoneSeq(Long milestoneSeq);
 
@@ -26,10 +26,10 @@ public interface AiGenerationMapper {
     void updateFailed(@Param("genSeq") Long genSeq,
                       @Param("errorMsg") String errorMsg);
 
-    int countTodayByUserSeq(Long userSeq);
+    int countTodayByUserSeq(String ucode);
 
     BigDecimal sumTodayCostUsd();
 
-    boolean existsFreeRetry(@Param("userSeq") Long userSeq,
+    boolean existsFreeRetry(@Param("ucode") String ucode,
                             @Param("milestoneSeq") Long milestoneSeq);
 }

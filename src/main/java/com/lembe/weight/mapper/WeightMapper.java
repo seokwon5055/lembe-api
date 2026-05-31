@@ -12,11 +12,11 @@ public interface WeightMapper {
 
     void insert(WeightRecord record);
 
-    WeightRecord findByUserAndDate(@Param("userSeq") Long userSeq,
+    WeightRecord findByUcodeAndDate(@Param("ucode") String ucode,
                                    @Param("loggedAt") LocalDate loggedAt);
 
-    WeightRecord findLatestByUserSeq(Long userSeq);
+    WeightRecord findLatestByUserSeq(String ucode);
 
-    List<WeightRecord> findHistory(@Param("userSeq") Long userSeq,
+    List<WeightRecord> findHistory(@Param("ucode") String ucode,
                                    @Param("fromDate") LocalDate fromDate);
 }

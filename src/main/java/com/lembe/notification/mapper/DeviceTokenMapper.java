@@ -11,7 +11,7 @@ public interface DeviceTokenMapper {
 
     void upsert(DeviceToken token);
 
-    List<DeviceToken> findActiveByUserSeq(Long userSeq);
+    List<DeviceToken> findActiveByUcode(String ucode);
 
     void deactivate(@Param("fcmToken") String fcmToken);
 }

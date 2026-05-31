@@ -30,53 +30,67 @@ public class GoalService {
     private final MilestoneCalculator calculator = new MilestoneCalculator();
 
     @Transactional
-    public GoalWithMilestonesResponse createGoal(Long userSeq, CreateGoalRequest req) {
+    public GoalWithMilestonesResponse createGoal(String ucode, CreateGoalRequest req) {
         if (req.targetWeight().compareTo(req.startWeight()) >= 0) {
             throw new LembeException(ErrorCode.INVALID_INPUT, "목표 체중은 시작 체중보다 낮아야 합니다.");
         }
 
-        // 기존 활성 목표 포기 처리
-        Goal existing = goalMapper.findActiveByUserSeq(userSeq);
+        Goal existing = goalMapper.findActiveByUcode(ucode);
+        Goal goal;
+
         if (existing != null) {
-            goalMapper.updateStatus(existing.getGoalSeq(), "ABANDONED");
+            // 기존 목표를 전체 수정 (새 행 생성 없이 UPDATE)
+            goal = Goal.builder()
+                    .goalSeq(existing.getGoalSeq())
+                    .ucode(ucode)
+                    .mode(req.mode())
+                    .startWeight(req.startWeight())
+                    .targetWeight(req.targetWeight())
+                    .startBodyFatPct(req.startBodyFatPct())
+                    .targetBodyFatPct(req.targetBodyFatPct())
+                    .startMuscleMassKg(req.startMuscleMassKg())
+                    .targetMuscleMassKg(req.targetMuscleMassKg())
+                    .build();
+            goalMapper.updateFull(goal);
+            milestoneMapper.deleteAllByGoalSeq(existing.getGoalSeq());
+        } else {
+            // 최초 목표 생성
+            goal = Goal.builder()
+                    .ucode(ucode)
+                    .mode(req.mode())
+                    .startWeight(req.startWeight())
+                    .targetWeight(req.targetWeight())
+                    .startBodyFatPct(req.startBodyFatPct())
+                    .targetBodyFatPct(req.targetBodyFatPct())
+                    .startMuscleMassKg(req.startMuscleMassKg())
+                    .targetMuscleMassKg(req.targetMuscleMassKg())
+                    .build();
+            goalMapper.insert(goal);
         }
 
-        // 목표 생성
-        Goal goal = Goal.builder()
-                .userSeq(userSeq)
-                .mode(req.mode())
-                .startWeight(req.startWeight())
-                .targetWeight(req.targetWeight())
-                .startBodyFatPct(req.startBodyFatPct())
-                .targetBodyFatPct(req.targetBodyFatPct())
-                .startMuscleMassKg(req.startMuscleMassKg())
-                .targetMuscleMassKg(req.targetMuscleMassKg())
-                .build();
-        goalMapper.insert(goal);
-
-        // 마일스톤 자동 생성
+        // 마일스톤 재계산
         List<Milestone> milestones = buildMilestones(goal, req.startWeight(), req.targetWeight(), 1);
         if (!milestones.isEmpty()) {
             milestoneMapper.batchInsert(milestones);
         }
 
         // AI 사진 생성 트리거 (커밋 후 비동기 실행)
-        eventPublisher.publishEvent(new GoalCreatedEvent(userSeq, goal.getGoalSeq()));
+        eventPublisher.publishEvent(new GoalCreatedEvent(ucode, goal.getGoalSeq()));
 
         return toResponse(goal, milestones);
     }
 
     @Transactional(readOnly = true)
-    public GoalWithMilestonesResponse getCurrentGoal(Long userSeq) {
-        Goal goal = requireActiveGoal(userSeq);
+    public GoalWithMilestonesResponse getCurrentGoal(String ucode) {
+        Goal goal = requireActiveGoal(ucode);
         List<Milestone> milestones = milestoneMapper.findByGoalSeq(goal.getGoalSeq());
         return toResponse(goal, milestones);
     }
 
     @Transactional
-    public GoalWithMilestonesResponse updateGoal(Long userSeq, Long goalSeq, UpdateGoalRequest req) {
+    public GoalWithMilestonesResponse updateGoal(String ucode, Long goalSeq, UpdateGoalRequest req) {
         Goal goal = goalMapper.findById(goalSeq);
-        if (goal == null || !goal.getUserSeq().equals(userSeq)) {
+        if (goal == null || !goal.getUcode().equals(ucode)) {
             throw new LembeException(ErrorCode.GOAL_NOT_FOUND);
         }
         if (!"ACTIVE".equals(goal.getStatus())) {
@@ -105,13 +119,13 @@ public class GoalService {
 
         if (req.targetWeight().compareTo(baseWeight) >= 0) {
             // 이미 목표 초과 달성 상태
-            return getCurrentGoal(userSeq);
+            return getCurrentGoal(ucode);
         }
 
         List<Milestone> newMilestones = buildMilestones(
                 Goal.builder()
                         .goalSeq(goalSeq)
-                        .userSeq(userSeq)
+                        .ucode(ucode)
                         .startWeight(goal.getStartWeight())
                         .targetWeight(req.targetWeight())
                         .startBodyFatPct(goal.getStartBodyFatPct())
@@ -128,20 +142,20 @@ public class GoalService {
             milestoneMapper.batchInsert(newMilestones);
         }
 
-        return getCurrentGoal(userSeq);
+        return getCurrentGoal(ucode);
     }
 
     @Transactional(readOnly = true)
-    public List<MilestoneResponse> getMilestones(Long userSeq) {
-        Goal goal = requireActiveGoal(userSeq);
+    public List<MilestoneResponse> getMilestones(String ucode) {
+        Goal goal = requireActiveGoal(ucode);
         return milestoneMapper.findByGoalSeq(goal.getGoalSeq())
                 .stream().map(MilestoneResponse::from).toList();
     }
 
     // ── private helpers ──────────────────────────────────────────────────────
 
-    private Goal requireActiveGoal(Long userSeq) {
-        Goal goal = goalMapper.findActiveByUserSeq(userSeq);
+    private Goal requireActiveGoal(String ucode) {
+        Goal goal = goalMapper.findActiveByUcode(ucode);
         if (goal == null) {
             throw new LembeException(ErrorCode.GOAL_NOT_FOUND, "활성 목표가 없습니다.");
         }
@@ -158,7 +172,7 @@ public class GoalService {
 
         return results.stream().map(r -> Milestone.builder()
                 .goalSeq(goal.getGoalSeq())
-                .userSeq(goal.getUserSeq())
+                .ucode(goal.getUcode())
                 .sequence(r.sequence())
                 .label(r.label())
                 .targetWeight(r.targetWeight())

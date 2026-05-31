@@ -1,3 +1,3 @@
 package com.lembe.ai.event;
 
-public record ProgressPhotoUploadedEvent(Long userSeq, Long milestoneSeq, Long photoSeq) {}
+public record ProgressPhotoUploadedEvent(String ucode, Long milestoneSeq, Long photoSeq) {}

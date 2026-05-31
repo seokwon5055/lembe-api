@@ -7,7 +7,7 @@ import org.apache.ibatis.annotations.Param;
 @Mapper
 public interface GoalMapper {
 
-    Goal findActiveByUserSeq(Long userSeq);
+    Goal findActiveByUcode(String ucode);
 
     Goal findById(Long goalSeq);
 
@@ -16,4 +16,6 @@ public interface GoalMapper {
     void updateStatus(@Param("goalSeq") Long goalSeq, @Param("status") String status);
 
     void updateTarget(Goal goal);
+
+    void updateFull(Goal goal);
 }

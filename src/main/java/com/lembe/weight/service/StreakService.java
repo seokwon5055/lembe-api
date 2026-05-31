@@ -21,8 +21,8 @@ public class StreakService {
      * - 어제 기록 → streak + 1
      * - 그 외 → streak = 1 (리셋)
      */
-    public StreakResult update(Long userSeq, LocalDate recordDate) {
-        User user = userMapper.findById(userSeq);
+    public StreakResult update(String ucode, LocalDate recordDate) {
+        User user = userMapper.findByUcode(ucode);
         if (user == null) return new StreakResult(1, false);
 
         LocalDate lastStreakDt = user.getLastStreakDt();
@@ -41,7 +41,7 @@ public class StreakService {
             newStreak = 1;
         }
 
-        userMapper.updateStreak(userSeq, newStreak, recordDate);
+        userMapper.updateStreak(ucode, newStreak, recordDate);
         return new StreakResult(newStreak, true);
     }
 }

@@ -8,7 +8,7 @@ public interface RouletteMapper {
 
     void insert(RouletteLog log);
 
-    RouletteLog findLastFreeByUserSeq(Long userSeq);
+    RouletteLog findLastFreeByUserSeq(String ucode);
 
-    int countAdBonusTodayByUserSeq(Long userSeq);
+    int countAdBonusTodayByUserSeq(String ucode);
 }

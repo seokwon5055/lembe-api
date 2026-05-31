@@ -20,9 +20,9 @@ public class DeviceController {
 
     @PostMapping("/token")
     public ApiResponse<Void> registerToken(
-            @AuthenticationPrincipal Long userSeq,
+            @AuthenticationPrincipal String ucode,
             @Valid @RequestBody DeviceTokenRequest request) {
-        deviceTokenService.registerToken(userSeq, request);
+        deviceTokenService.registerToken(ucode, request);
         return ApiResponse.ok();
     }
 }

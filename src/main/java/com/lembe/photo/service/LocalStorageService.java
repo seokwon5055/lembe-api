@@ -29,11 +29,11 @@ public class LocalStorageService implements StorageService {
     private final StorageProperties storageProperties;
 
     @Override
-    public StorageResult store(MultipartFile file, Long userId, String photoType) {
+    public StorageResult store(MultipartFile file, String ucode, String photoType) {
         validateFile(file);
 
         String ext = resolveExtension(file.getOriginalFilename());
-        String relativePath = userId + "/" + photoType.toLowerCase() + "/" + UUID.randomUUID() + ext;
+        String relativePath = ucode + "/" + photoType.toLowerCase() + "/" + UUID.randomUUID() + ext;
 
         Path fullPath = Paths.get(storageProperties.getLocal().getBasePath()).resolve(relativePath);
         try {

@@ -31,9 +31,9 @@ public class MilestoneService {
     private final ApplicationEventPublisher eventPublisher;
 
     @Transactional
-    public MilestoneResponse unlock(Long userSeq, Long milestoneSeq) {
+    public MilestoneResponse unlock(String ucode, Long milestoneSeq) {
         Milestone milestone = milestoneMapper.findById(milestoneSeq);
-        if (milestone == null || !milestone.getUserSeq().equals(userSeq)) {
+        if (milestone == null || !milestone.getUcode().equals(ucode)) {
             throw new LembeException(ErrorCode.MILESTONE_NOT_FOUND);
         }
 
@@ -45,29 +45,29 @@ public class MilestoneService {
             throw new LembeException(ErrorCode.MILESTONE_NOT_READY);
         }
 
-        pointService.deduct(userSeq, UNLOCK_COST, "MILESTONE_UNLOCK", String.valueOf(milestoneSeq));
+        pointService.deduct(ucode, UNLOCK_COST, "MILESTONE_UNLOCK", String.valueOf(milestoneSeq));
         milestoneMapper.unlockById(milestoneSeq);
 
-        notificationService.sendToUser(userSeq, NotificationType.MILESTONE_UNLOCKED);
+        notificationService.sendToUser(ucode, NotificationType.MILESTONE_UNLOCKED);
 
         // 다음 마일스톤 AI 사진 생성 트리거 (커밋 후 비동기 실행)
-        eventPublisher.publishEvent(new MilestoneUnlockedEvent(userSeq, milestoneSeq));
+        eventPublisher.publishEvent(new MilestoneUnlockedEvent(ucode, milestoneSeq));
 
         return MilestoneResponse.from(milestoneMapper.findById(milestoneSeq));
     }
 
     @Transactional
-    public PhotoResponse uploadProgressPhoto(Long userSeq, Long milestoneSeq, MultipartFile file) {
+    public PhotoResponse uploadProgressPhoto(String ucode, Long milestoneSeq, MultipartFile file) {
         Milestone milestone = milestoneMapper.findById(milestoneSeq);
-        if (milestone == null || !milestone.getUserSeq().equals(userSeq)) {
+        if (milestone == null || !milestone.getUcode().equals(ucode)) {
             throw new LembeException(ErrorCode.MILESTONE_NOT_FOUND);
         }
 
-        PhotoResponse photo = photoService.upload(userSeq, file, "PROGRESS", milestoneSeq);
+        PhotoResponse photo = photoService.upload(ucode, file, "PROGRESS", milestoneSeq);
 
         // 적응 학습 트리거 (커밋 후 비동기 실행)
         eventPublisher.publishEvent(
-                new ProgressPhotoUploadedEvent(userSeq, milestoneSeq, photo.photoSeq()));
+                new ProgressPhotoUploadedEvent(ucode, milestoneSeq, photo.photoSeq()));
 
         return photo;
     }

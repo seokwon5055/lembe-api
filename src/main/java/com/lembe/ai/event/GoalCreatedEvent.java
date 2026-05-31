@@ -1,3 +1,3 @@
 package com.lembe.ai.event;
 
-public record GoalCreatedEvent(Long userSeq, Long goalSeq) {}
+public record GoalCreatedEvent(String ucode, Long goalSeq) {}

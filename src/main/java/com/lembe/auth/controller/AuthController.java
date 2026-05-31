@@ -31,8 +31,8 @@ public class AuthController {
 
     @PostMapping("/refresh")
     public ApiResponse<Map<String, String>> refresh(@Valid @RequestBody TokenRefreshRequest request) {
-        Long userId = jwtTokenProvider.getUserIdFromRefreshToken(request.refreshToken());
-        String newAccessToken = jwtTokenProvider.createAccessToken(userId);
+        String ucode = jwtTokenProvider.getUcodeFromRefreshToken(request.refreshToken());
+        String newAccessToken = jwtTokenProvider.createAccessToken(ucode);
         return ApiResponse.ok(Map.of("accessToken", newAccessToken));
     }
 }

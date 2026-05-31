@@ -8,5 +8,5 @@ public interface UserProfileMapper {
 
     void insert(UserProfile userProfile);
 
-    UserProfile findByUserSeq(Long userSeq);
+    UserProfile findByUcode(String ucode);
 }

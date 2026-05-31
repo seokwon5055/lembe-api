@@ -35,53 +35,53 @@ public class RouletteService {
     private final StringRedisTemplate redisTemplate;
 
     @Transactional
-    public RouletteResponse spin(Long userSeq) {
-        acquireRateLock(userSeq);
-        checkFreeSpinCooldown(userSeq);
-        return doSpin(userSeq, "FREE");
+    public RouletteResponse spin(String ucode) {
+        acquireRateLock(ucode);
+        checkFreeSpinCooldown(ucode);
+        return doSpin(ucode, "FREE");
     }
 
     @Transactional
-    public RouletteResponse spinAd(Long userSeq) {
-        acquireRateLock(userSeq);
-        int adCountToday = rouletteMapper.countAdBonusTodayByUserSeq(userSeq);
+    public RouletteResponse spinAd(String ucode) {
+        acquireRateLock(ucode);
+        int adCountToday = rouletteMapper.countAdBonusTodayByUserSeq(ucode);
         if (adCountToday >= AD_SPIN_DAILY_LIMIT) {
             throw new LembeException(ErrorCode.INVALID_INPUT,
                     "오늘 광고 보상 룰렛을 모두 사용했습니다. (일 " + AD_SPIN_DAILY_LIMIT + "회 제한)");
         }
-        return doSpin(userSeq, "AD_BONUS");
+        return doSpin(ucode, "AD_BONUS");
     }
 
     // ── private helpers ──────────────────────────────────────────────────────
 
-    private RouletteResponse doSpin(Long userSeq, String spinType) {
+    private RouletteResponse doSpin(String ucode, String spinType) {
         int pointsWon = drawPrize();
-        int streakBonus = calcStreakBonus(userSeq);
+        int streakBonus = calcStreakBonus(ucode);
         int totalEarned = pointsWon + streakBonus;
 
-        int balanceAfter = pointService.add(userSeq, totalEarned, "ROULETTE", spinType);
+        int balanceAfter = pointService.add(ucode, totalEarned, "ROULETTE", spinType);
 
         LocalDateTime spunAt = LocalDateTime.now();
         rouletteMapper.insert(RouletteLog.builder()
-                .userSeq(userSeq)
+                .ucode(ucode)
                 .spinType(spinType)
                 .pointsWon(totalEarned)
                 .spunAt(spunAt)
                 .build());
 
         LocalDateTime nextFreeAt = "FREE".equals(spinType) ? spunAt.plusHours(24) : null;
-        int adRemaining = AD_SPIN_DAILY_LIMIT - rouletteMapper.countAdBonusTodayByUserSeq(userSeq);
+        int adRemaining = AD_SPIN_DAILY_LIMIT - rouletteMapper.countAdBonusTodayByUserSeq(ucode);
 
         log.info("[Roulette] user={} type={} won={}P bonus={}P total={}P balance={}",
-                userSeq, spinType, pointsWon, streakBonus, totalEarned, balanceAfter);
+                ucode, spinType, pointsWon, streakBonus, totalEarned, balanceAfter);
 
         return new RouletteResponse(pointsWon, streakBonus, totalEarned,
                 balanceAfter, nextFreeAt, Math.max(0, adRemaining));
     }
 
     /** Redis rate lock — TTL 5초: 동일 사용자의 연속 중복 호출 방지 */
-    private void acquireRateLock(Long userSeq) {
-        String key = "rate:roulette:" + userSeq;
+    private void acquireRateLock(String ucode) {
+        String key = "rate:roulette:" + ucode;
         Boolean acquired = redisTemplate.opsForValue()
                 .setIfAbsent(key, "1", Duration.ofSeconds(RATE_LIMIT_TTL_SECS));
         if (!Boolean.TRUE.equals(acquired)) {
@@ -91,8 +91,8 @@ public class RouletteService {
     }
 
     /** FREE 스핀 24시간 쿨다운 체크 */
-    private void checkFreeSpinCooldown(Long userSeq) {
-        RouletteLog last = rouletteMapper.findLastFreeByUserSeq(userSeq);
+    private void checkFreeSpinCooldown(String ucode) {
+        RouletteLog last = rouletteMapper.findLastFreeByUserSeq(ucode);
         if (last == null) return;
 
         LocalDateTime nextAvailable = last.getSpunAt().plusHours(24);
@@ -114,8 +114,8 @@ public class RouletteService {
     }
 
     /** Streak 보너스: 30일≥ → +3P, 7일≥ → +1P */
-    private int calcStreakBonus(Long userSeq) {
-        User user = userMapper.findById(userSeq);
+    private int calcStreakBonus(String ucode) {
+        User user = userMapper.findByUcode(ucode);
         if (user == null) return 0;
         int streak = user.getStreakCount();
         if (streak >= 30) return 3;

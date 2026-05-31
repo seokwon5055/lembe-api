@@ -19,8 +19,8 @@ public class AiCostGuardService {
     private final AiGenerationMapper aiGenerationMapper;
 
     @Transactional(readOnly = true)
-    public void checkUserLimit(Long userSeq) {
-        int count = aiGenerationMapper.countTodayByUserSeq(userSeq);
+    public void checkUserLimit(String ucode) {
+        int count = aiGenerationMapper.countTodayByUserSeq(ucode);
         if (count >= USER_DAILY_LIMIT) {
             throw new LembeException(ErrorCode.AI_DAILY_LIMIT_EXCEEDED);
         }

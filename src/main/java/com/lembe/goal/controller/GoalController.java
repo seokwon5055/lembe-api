@@ -33,43 +33,43 @@ public class GoalController {
 
     @PostMapping("/goals")
     public ApiResponse<GoalWithMilestonesResponse> createGoal(
-            @AuthenticationPrincipal Long userSeq,
+            @AuthenticationPrincipal String ucode,
             @Valid @RequestBody CreateGoalRequest request) {
-        return ApiResponse.ok(goalService.createGoal(userSeq, request));
+        return ApiResponse.ok(goalService.createGoal(ucode, request));
     }
 
     @GetMapping("/goals/current")
     public ApiResponse<GoalWithMilestonesResponse> getCurrentGoal(
-            @AuthenticationPrincipal Long userSeq) {
-        return ApiResponse.ok(goalService.getCurrentGoal(userSeq));
+            @AuthenticationPrincipal String ucode) {
+        return ApiResponse.ok(goalService.getCurrentGoal(ucode));
     }
 
     @PutMapping("/goals/{goalSeq}")
     public ApiResponse<GoalWithMilestonesResponse> updateGoal(
-            @AuthenticationPrincipal Long userSeq,
+            @AuthenticationPrincipal String ucode,
             @PathVariable Long goalSeq,
             @Valid @RequestBody UpdateGoalRequest request) {
-        return ApiResponse.ok(goalService.updateGoal(userSeq, goalSeq, request));
+        return ApiResponse.ok(goalService.updateGoal(ucode, goalSeq, request));
     }
 
     @GetMapping("/milestones")
     public ApiResponse<List<MilestoneResponse>> getMilestones(
-            @AuthenticationPrincipal Long userSeq) {
-        return ApiResponse.ok(goalService.getMilestones(userSeq));
+            @AuthenticationPrincipal String ucode) {
+        return ApiResponse.ok(goalService.getMilestones(ucode));
     }
 
     @PostMapping("/milestones/{milestoneSeq}/unlock")
     public ApiResponse<MilestoneResponse> unlockMilestone(
-            @AuthenticationPrincipal Long userSeq,
+            @AuthenticationPrincipal String ucode,
             @PathVariable Long milestoneSeq) {
-        return ApiResponse.ok(milestoneService.unlock(userSeq, milestoneSeq));
+        return ApiResponse.ok(milestoneService.unlock(ucode, milestoneSeq));
     }
 
     @PostMapping("/milestones/{milestoneSeq}/upload-progress")
     public ApiResponse<PhotoResponse> uploadProgressPhoto(
-            @AuthenticationPrincipal Long userSeq,
+            @AuthenticationPrincipal String ucode,
             @PathVariable Long milestoneSeq,
             @RequestParam("file") MultipartFile file) {
-        return ApiResponse.ok(milestoneService.uploadProgressPhoto(userSeq, milestoneSeq, file));
+        return ApiResponse.ok(milestoneService.uploadProgressPhoto(ucode, milestoneSeq, file));
     }
 }

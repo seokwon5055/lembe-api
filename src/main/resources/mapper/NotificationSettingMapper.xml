@@ -6,7 +6,7 @@
 
     <resultMap id="SettingResultMap" type="com.lembe.notification.domain.NotificationSetting">
         <id     property="settingSeq"        column="setting_seq"/>
-        <result property="userSeq"           column="user_seq"/>
+        <result property="ucode"           column="ucode"/>
         <result property="milestoneReady"    column="milestone_ready"/>
         <result property="milestoneUnlocked" column="milestone_unlocked"/>
         <result property="rouletteReady"     column="roulette_ready"/>
@@ -17,16 +17,16 @@
     </resultMap>
 
     <select id="findByUserSeq" resultMap="SettingResultMap">
-        SELECT * FROM tb_notification_setting
-        WHERE user_seq = #{userSeq}
+        SELECT * FROM notification_setting
+        WHERE ucode = #{ucode}
     </select>
 
     <insert id="upsert">
-        INSERT INTO tb_notification_setting
-            (user_seq, milestone_ready, milestone_unlocked,
+        INSERT INTO notification_setting
+            (ucode, milestone_ready, milestone_unlocked,
              roulette_ready, streak_warning, weight_reminder)
         VALUES
-            (#{userSeq}, #{milestoneReady}, #{milestoneUnlocked},
+            (#{ucode}, #{milestoneReady}, #{milestoneUnlocked},
              #{rouletteReady}, #{streakWarning}, #{weightReminder})
         ON DUPLICATE KEY UPDATE
             milestone_ready    = VALUES(milestone_ready),

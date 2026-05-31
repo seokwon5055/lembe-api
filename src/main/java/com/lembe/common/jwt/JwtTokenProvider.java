@@ -34,16 +34,16 @@ public class JwtTokenProvider {
         );
     }
 
-    public String createAccessToken(Long userId) {
-        return buildToken(userId, TYPE_ACCESS, jwtProperties.getAccessTokenExpiry());
+    public String createAccessToken(String ucode) {
+        return buildToken(ucode, TYPE_ACCESS, jwtProperties.getAccessTokenExpiry());
     }
 
-    public String createRefreshToken(Long userId) {
-        return buildToken(userId, TYPE_REFRESH, jwtProperties.getRefreshTokenExpiry());
+    public String createRefreshToken(String ucode) {
+        return buildToken(ucode, TYPE_REFRESH, jwtProperties.getRefreshTokenExpiry());
     }
 
-    public Long getUserId(String token) {
-        return Long.parseLong(parseClaims(token).getSubject());
+    public String getUcode(String token) {
+        return parseClaims(token).getSubject();
     }
 
     public boolean validateAccessToken(String token) {
@@ -54,18 +54,18 @@ public class JwtTokenProvider {
         return validateTokenType(token, TYPE_REFRESH);
     }
 
-    public Long getUserIdFromRefreshToken(String token) {
+    public String getUcodeFromRefreshToken(String token) {
         Claims claims = parseClaims(token);
         if (!TYPE_REFRESH.equals(claims.get(CLAIM_TYPE, String.class))) {
             throw new LembeException(ErrorCode.INVALID_TOKEN);
         }
-        return Long.parseLong(claims.getSubject());
+        return claims.getSubject();
     }
 
-    private String buildToken(Long userId, String type, long expiryMs) {
+    private String buildToken(String ucode, String type, long expiryMs) {
         Date now = new Date();
         return Jwts.builder()
-                .subject(String.valueOf(userId))
+                .subject(ucode)
                 .claim(CLAIM_TYPE, type)
                 .issuedAt(now)
                 .expiration(new Date(now.getTime() + expiryMs))

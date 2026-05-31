@@ -24,6 +24,8 @@ public interface MilestoneMapper {
 
     void deleteLockedByGoalSeq(Long goalSeq);
 
+    void deleteAllByGoalSeq(Long goalSeq);
+
     void markReadyToUnlock(Long milestoneSeq);
 
     void unlock(@Param("milestoneSeq") Long milestoneSeq,
